@@ -1,0 +1,8 @@
+{
+  "name": "AFCA - Abrahamic Faith Christian Assembly",
+  "description": "A modern, welcoming church website for Abrahamic Faith Christian Assembly, featuring ministries, sermons, and community events.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
