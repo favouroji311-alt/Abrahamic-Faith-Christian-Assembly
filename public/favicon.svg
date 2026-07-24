@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <rect width="512" height="512" rx="128" fill="#09090b"/>
+  <!-- Cross and Flame Symbol -->
+  <g transform="translate(0, 0)">
+    <!-- Vertical Bar of Cross -->
+    <rect x="236" y="112" width="40" height="288" rx="8" fill="#3b82f6"/>
+    <!-- Horizontal Bar of Cross -->
+    <rect x="152" y="184" width="208" height="40" rx="8" fill="#3b82f6"/>
+    <!-- Flame Overlay -->
+    <path d="M256 120 C270 180 320 230 320 280 C320 320 290 352 256 352 C222 352 192 320 192 280 C192 230 242 180 256 120 Z" fill="#ccff00" opacity="0.95"/>
+    <path d="M256 190 C264 220 290 250 290 280 C290 300 274 320 256 320 C238 320 222 300 222 280 C222 250 248 220 256 190 Z" fill="#ffffff" opacity="0.9"/>
+  </g>
+</svg>
