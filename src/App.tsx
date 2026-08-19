@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import type { ReactNode } from 'react';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
+import { ScrollToTop } from './components/common/ScrollToTop';
 import { Home } from './pages/Home';
 import { About } from './pages/About';
 import { Ministries } from './pages/Ministries';
@@ -33,6 +34,7 @@ export default function App() {
 
   return (
     <Router>
+      <ScrollToTop />
       <div className="flex flex-col min-h-screen relative overflow-x-hidden">
         {/* Ambient Liquid Mesh Layer for Refraction */}
         <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">

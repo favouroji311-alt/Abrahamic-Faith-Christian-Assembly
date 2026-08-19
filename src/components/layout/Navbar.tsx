@@ -13,7 +13,11 @@ export function Navbar({ onConnect }: NavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== 'undefined') {
-      return document.documentElement.classList.contains('dark');
+      const stored = localStorage.getItem('afca_theme');
+      if (stored) {
+        return stored === 'dark';
+      }
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
     }
     return false;
   });
@@ -22,16 +26,46 @@ export function Navbar({ onConnect }: NavbarProps) {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     
-    // Initial sync
-    const isDarkTheme = document.documentElement.classList.contains('dark');
-    setIsDark(isDarkTheme);
+    // Check initial state and sync DOM
+    const stored = localStorage.getItem('afca_theme');
+    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const shouldBeDark = stored ? stored === 'dark' : systemDark;
+    
+    setIsDark(shouldBeDark);
+    if (shouldBeDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
 
-    return () => window.removeEventListener('scroll', handleScroll);
+    // Listen to browser theme changes if user hasn't explicitly set a preference
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleThemeChange = (e: MediaQueryListEvent) => {
+      const userTheme = localStorage.getItem('afca_theme');
+      if (!userTheme) {
+        setIsDark(e.matches);
+        if (e.matches) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      }
+    };
+
+    mediaQuery.addEventListener('change', handleThemeChange);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      mediaQuery.removeEventListener('change', handleThemeChange);
+    };
   }, []);
 
   const toggleTheme = () => {
     const newDark = !isDark;
     setIsDark(newDark);
+    try {
+      localStorage.setItem('afca_theme', newDark ? 'dark' : 'light');
+    } catch {}
     if (newDark) {
       document.documentElement.classList.add('dark');
     } else {
