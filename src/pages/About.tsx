@@ -42,30 +42,30 @@ export function About() {
   ];
 
   return (
-    <div className="pt-24 min-h-screen bg-white dark:bg-zinc-950">
+    <div className="pt-20 sm:pt-24 min-h-screen overflow-hidden">
       {/* Header */}
-      <section className="bg-zinc-950 py-32 text-white relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
-          <span className="caption-mono mb-8 block">Legacy / Vol 01</span>
+      <section className="py-16 sm:py-24 md:py-28 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
+          <span className="caption-mono mb-4 block text-blue-600 dark:text-neon-green">Legacy / Vol 01</span>
           <motion.h1 
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            className="huge-title mb-12"
+            className="huge-title mb-6 text-slate-900 dark:text-white"
           >
-            OUR <span className="text-neon-green italic underline decoration-white/10">JOURNEY.</span>
+            OUR <span className="text-neon-green italic underline decoration-slate-300 dark:decoration-slate-700">JOURNEY.</span>
           </motion.h1>
-          <p className="text-2xl text-white/60 max-w-2xl leading-relaxed font-light">
+          <p className="text-base sm:text-xl md:text-2xl text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed font-light">
             Discover the heart behind Abrahamic Faith Christian Assembly and our commitment to the Kingdom.
           </p>
         </div>
       </section>
 
       {/* History */}
-      <section className="py-24 max-w-7xl mx-auto px-6">
-        <div className="grid md:grid-cols-2 gap-20 items-center">
-          <div className="space-y-8 leading-relaxed text-xl text-gray-600 dark:text-gray-400">
+      <section className="py-12 sm:py-20 max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-center">
+          <div className="space-y-6 leading-relaxed text-sm sm:text-base md:text-lg text-slate-600 dark:text-slate-300">
             <p>
-              Since our inception in 1995, Abrahamic Faith Christian Assembly( formerly known as Faith In Action Ministries aka Triumph Christian Center) has been a cornerstone for believers 
+              Since our inception in 1995, Abrahamic Faith Christian Assembly (formerly known as Faith In Action Ministries aka Triumph Christian Center) has been a cornerstone for believers 
               looking for authentic worship and deep community. We believe in the power of the Word to transform 
               lives and the call to serve as the hands and feet of Jesus.
             </p>
@@ -74,64 +74,67 @@ export function About() {
               meet the modern needs of believers. Today, we stand as a diverse multi-generational family 
               dedicated to spiritual growth and community empowerment.
             </p>
-            <div className="p-10 rounded-[3rem] bg-gray-100 dark:bg-gray-800 border-l-8 border-neon-green">
-              <h3 className="text-3xl font-black text-blue-700 dark:text-neon-green mb-4 italic">"And they continued steadfastly in the apostles' doctrine and fellowship..."</h3>
-              <p className="text-sm font-bold uppercase tracking-widest">– Acts 2:42</p>
+            <div className="p-6 sm:p-8 rounded-3xl liquid-inset border-l-4 border-neon-green">
+              <h3 className="text-lg sm:text-2xl font-black text-blue-600 dark:text-neon-green mb-3 italic">
+                "And they continued steadfastly in the apostles' doctrine and fellowship..."
+              </h3>
+              <p className="text-xs font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">– Acts 2:42</p>
             </div>
           </div>
           <div className="relative">
-            <div className="absolute -top-12 -right-12 w-64 h-64 bg-blue-700/10 rounded-full blur-3xl"></div>
-            <img 
-              src="https://images.unsplash.com/photo-1544427928-c49cdfebf494?auto=format&fit=crop&w=1000&q=80" 
-              className="rounded-3xl shadow-2xl relative z-10 w-full object-cover aspect-[3/4]" 
-              alt="Church History" 
-            />
+            <div className="liquid-glass p-3 sm:p-4 rounded-3xl sm:rounded-[2.5rem] liquid-sheen">
+              <img 
+                src="https://images.unsplash.com/photo-1544427928-c49cdfebf494?auto=format&fit=crop&w=1000&q=80" 
+                className="rounded-2xl sm:rounded-[2rem] w-full object-cover aspect-[4/3] sm:aspect-[3/4]" 
+                alt="Church History" 
+              />
+            </div>
           </div>
         </div>
       </section>
 
       {/* Values */}
-      <section className="py-32 bg-gray-50 dark:bg-zinc-900/40 border-t border-gray-100 dark:border-zinc-900">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="mb-20">
-            <span className="caption-mono mb-4 block text-blue-700 dark:text-neon-green">The 6 P's / Foundational</span>
-            <h2 className="text-5xl md:text-7xl font-black dark:text-white tracking-tighter leading-none mb-6">
-              OUR CORE <span className="text-gray-300 dark:text-zinc-800 italic">VALUES.</span>
+      <section className="py-16 sm:py-24 md:py-32 border-t border-slate-300/40 dark:border-slate-800/60">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="mb-12 sm:mb-16">
+            <span className="caption-mono mb-3 block text-blue-600 dark:text-neon-green">The 6 P's / Foundational</span>
+            <h2 className="text-3xl sm:text-5xl md:text-7xl font-black text-slate-900 dark:text-white tracking-tight leading-none mb-4">
+              OUR CORE <span className="text-slate-400 dark:text-slate-600 italic">VALUES.</span>
             </h2>
-            <p className="text-xl text-gray-500 dark:text-zinc-400 font-light max-w-xl">
+            <p className="text-base sm:text-xl text-slate-600 dark:text-slate-400 font-light max-w-xl">
               The spiritual pillars that steer our faith, guide our fellowship, and define the heartbeat of other actions.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {values.map((v, i) => (
               <motion.div 
                 key={i}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
-                whileHover={{ y: -5 }}
-                className="card-clean p-10 flex flex-col justify-between h-full group cursor-pointer relative overflow-hidden"
+                whileHover={{ y: -4 }}
+                className="liquid-glass p-6 sm:p-8 rounded-3xl flex flex-col justify-between h-full group cursor-pointer relative overflow-hidden liquid-sheen"
               >
                 <div>
-                  <div className="flex justify-between items-center mb-10">
-                    <div className="w-14 h-14 bg-blue-50 dark:bg-zinc-800 rounded-2xl flex items-center justify-center text-blue-700 dark:text-neon-green group-hover:scale-110 transition-transform duration-500">
-                      <v.icon size={26} />
+                  <div className="flex justify-between items-center mb-6">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 liquid-inset rounded-2xl flex items-center justify-center text-blue-600 dark:text-neon-green group-hover:scale-105 transition-transform duration-300">
+                      <v.icon size={24} />
                     </div>
-                    <span className="caption-mono text-xl font-bold text-gray-200 dark:text-zinc-800 group-hover:text-neon-green transition-colors">{v.number}</span>
+                    <span className="caption-mono text-lg sm:text-xl font-bold text-slate-400 dark:text-slate-500 group-hover:text-neon-green transition-colors">{v.number}</span>
                   </div>
                   
-                  <h3 className="text-2xl font-black mb-4 dark:text-white leading-none tracking-tight uppercase">
+                  <h3 className="text-xl sm:text-2xl font-black mb-3 text-slate-900 dark:text-white leading-tight tracking-tight uppercase">
                     {v.title}
                   </h3>
                   
-                  <p className="text-gray-500 dark:text-zinc-400 leading-relaxed font-light mb-4">
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-light mb-4">
                     {v.desc}
                   </p>
                 </div>
                 
-                <div className="pt-6 border-t border-gray-100 dark:border-zinc-800/60 mt-auto">
-                  <span className="caption-mono !text-[8.5px] tracking-widest text-blue-700 dark:text-neon-green opacity-80 uppercase">
+                <div className="pt-4 border-t border-slate-300/40 dark:border-slate-800/60 mt-auto">
+                  <span className="caption-mono !text-[8.5px] tracking-widest text-blue-600 dark:text-neon-green uppercase font-bold">
                     Pillar / {v.title.split(' ')[0]}
                   </span>
                 </div>

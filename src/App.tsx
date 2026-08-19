@@ -33,7 +33,14 @@ export default function App() {
 
   return (
     <Router>
-      <div className="flex flex-col min-h-screen">
+      <div className="flex flex-col min-h-screen relative overflow-x-hidden">
+        {/* Ambient Liquid Mesh Layer for Refraction */}
+        <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
+          <div className="absolute -top-32 -left-32 w-96 h-96 sm:w-[500px] sm:h-[500px] rounded-full bg-gradient-to-br from-blue-400/20 via-cyan-300/15 to-emerald-400/10 dark:from-blue-600/15 dark:via-cyan-500/10 dark:to-emerald-500/10 blur-3xl animate-liquid-float-1" />
+          <div className="absolute top-1/3 -right-32 w-80 h-80 sm:w-[480px] sm:h-[480px] rounded-full bg-gradient-to-br from-emerald-300/20 via-lime-300/15 to-teal-400/10 dark:from-neon-green/10 dark:via-emerald-500/10 dark:to-cyan-600/10 blur-3xl animate-liquid-float-2" />
+          <div className="absolute -bottom-40 left-1/4 w-[420px] h-[420px] sm:w-[600px] sm:h-[600px] rounded-full bg-gradient-to-tr from-cyan-400/15 via-blue-400/15 to-indigo-400/10 dark:from-cyan-700/10 dark:via-blue-800/10 dark:to-emerald-800/10 blur-3xl animate-liquid-pulse" />
+        </div>
+
         <Navbar onConnect={() => setIsConnectOpen(true)} />
         <main className="flex-grow">
           <PageTransition>
@@ -45,7 +52,7 @@ export default function App() {
             </Routes>
           </PageTransition>
           
-          {/* Global AI component shown at the bottom of pages except Home (where it's integrated or optional) */}
+          {/* Global AI component shown at the bottom of pages */}
           <SectionDivider />
           <DailyVerse />
         </main>
@@ -62,8 +69,8 @@ export default function App() {
 
 function SectionDivider() {
   return (
-    <div className="max-w-7xl mx-auto px-6">
-      <div className="h-px bg-gray-100 dark:bg-gray-800 w-full"></div>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 my-10 sm:my-16">
+      <div className="h-px bg-slate-300/40 dark:bg-slate-800/60 w-full"></div>
     </div>
   );
 }

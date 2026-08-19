@@ -115,17 +115,17 @@ export function UpcomingEvents() {
   );
 
   return (
-    <section className="py-32 bg-zinc-50 dark:bg-zinc-950 border-t border-gray-100 dark:border-zinc-900 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6">
+    <section className="py-16 sm:py-24 md:py-32 overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
         
         {/* Header Block */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-12 mb-20">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 sm:gap-12 mb-12 sm:mb-16">
           <div>
-            <span className="caption-mono mb-4 block text-blue-700 dark:text-neon-green flex items-center gap-2">
+            <span className="caption-mono mb-3 sm:mb-4 block text-blue-600 dark:text-neon-green flex items-center gap-2">
               <Sparkles size={12} className="animate-pulse" /> Chronicles / Live Calendar
             </span>
-            <h2 className="text-5xl md:text-7xl font-black dark:text-white tracking-tighter leading-none uppercase">
-              UPCOMING <span className="text-gray-300 dark:text-zinc-800 italic">ACTIVITIES.</span>
+            <h2 className="text-3xl sm:text-5xl md:text-7xl font-black text-slate-900 dark:text-white tracking-tight leading-none uppercase">
+              UPCOMING <span className="text-slate-400 dark:text-slate-600 italic">ACTIVITIES.</span>
             </h2>
           </div>
           
@@ -135,10 +135,10 @@ export function UpcomingEvents() {
               <button
                 key={cat}
                 onClick={() => setFilter(cat)}
-                className={`px-5 py-2.5 text-[10px] font-mono tracking-widest uppercase transition-all duration-300 ${
+                className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-[10px] sm:text-[11px] font-mono tracking-wider uppercase transition-all duration-200 cursor-pointer ${
                   filter === cat
-                    ? 'bg-zinc-950 dark:bg-neon-green text-white dark:text-zinc-950 font-black'
-                    : 'bg-white dark:bg-zinc-900 text-gray-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white border border-gray-100 dark:border-zinc-800'
+                    ? 'liquid-inset text-blue-600 dark:text-neon-green font-black shadow-inner'
+                    : 'liquid-glass-button text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white'
                 }`}
               >
                 {cat}
@@ -149,18 +149,18 @@ export function UpcomingEvents() {
 
         {/* Dynamic Event Grid */}
         {filteredEvents.length === 0 ? (
-          <div className="text-center py-24 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-[2rem]">
-            <Bell className="mx-auto text-gray-300 dark:text-zinc-700 mb-6" size={48} />
-            <p className="text-xl text-gray-500 dark:text-zinc-400 font-light">No gatherings scheduled this season under this category.</p>
+          <div className="text-center py-16 sm:py-24 liquid-glass rounded-3xl liquid-sheen">
+            <Bell className="mx-auto text-slate-400 dark:text-slate-600 mb-4 sm:mb-6" size={40} />
+            <p className="text-lg sm:text-xl text-slate-500 dark:text-slate-400 font-light px-4">No gatherings scheduled this season under this category.</p>
             <button 
               onClick={() => setFilter('All')} 
-              className="mt-6 text-xs font-mono text-blue-700 dark:text-neon-green tracking-widest uppercase border-b border-current pb-1"
+              className="mt-6 liquid-glass-button px-6 py-2.5 rounded-full text-xs font-mono text-blue-600 dark:text-neon-green tracking-widest uppercase cursor-pointer"
             >
               Reset Filters
             </button>
           </div>
         ) : (
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3">
             {filteredEvents.map((evt, index) => {
               const isRegistered = rsvpedIds.includes(evt.id);
               const attendeesCount = evt.baseAttendees + (isRegistered ? 1 : 0);
@@ -172,53 +172,53 @@ export function UpcomingEvents() {
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: index * 0.05 }}
                   viewport={{ once: true }}
-                  className="card-clean p-8 flex flex-col justify-between h-full group cursor-pointer relative overflow-hidden"
+                  className="liquid-glass p-6 sm:p-8 rounded-3xl flex flex-col justify-between h-full group cursor-pointer relative overflow-hidden liquid-sheen"
                 >
                   <div>
                     {/* Event Type & Date Block */}
-                    <div className="flex justify-between items-start mb-8">
+                    <div className="flex justify-between items-start mb-6">
                       {/* Date Badge */}
-                      <div className="flex flex-col items-center justify-center w-16 h-16 bg-zinc-950 dark:bg-zinc-800 text-white rounded-2xl p-2 select-none group-hover:scale-105 transition-transform duration-500">
-                        <span className="text-[9px] font-mono tracking-wider text-gray-400 dark:text-zinc-400 leading-none mb-1">{evt.month}</span>
-                        <span className="text-2xl font-black font-display tracking-tight leading-none">{evt.day}</span>
+                      <div className="liquid-inset flex flex-col items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl p-2 select-none group-hover:scale-105 transition-transform duration-300">
+                        <span className="text-[9px] font-mono tracking-wider text-slate-500 dark:text-slate-400 leading-none mb-1">{evt.month}</span>
+                        <span className="text-xl sm:text-2xl font-black font-display tracking-tight leading-none text-slate-900 dark:text-white">{evt.day}</span>
                       </div>
 
                       {/* Category Pill */}
-                      <span className={`px-4 py-1.5 rounded-full text-[9px] font-mono tracking-widest uppercase font-black ${
+                      <span className={`px-3.5 py-1.5 rounded-full text-[9px] font-mono tracking-widest uppercase font-bold ${
                         isRegistered 
-                          ? 'bg-blue-50 dark:bg-neon-green/10 text-blue-800 dark:text-neon-green border border-blue-100 dark:border-neon-green/20'
-                          : 'bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400'
+                          ? 'liquid-inset text-blue-600 dark:text-neon-green'
+                          : 'liquid-inset text-slate-600 dark:text-slate-400'
                       }`}>
                         {isRegistered ? 'REGISTERED' : evt.category}
                       </span>
                     </div>
 
                     {/* Title */}
-                    <h3 className="text-2xl font-black mb-4 dark:text-white group-hover:text-blue-700 dark:group-hover:text-neon-green transition-colors leading-tight tracking-tight uppercase">
+                    <h3 className="text-lg sm:text-xl font-black mb-3 text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-neon-green transition-colors leading-tight uppercase">
                       {evt.title}
                     </h3>
 
                     {/* Details (Time / Location) */}
-                    <div className="space-y-2 mb-6">
-                      <div className="flex items-center gap-2.5 text-xs text-gray-500 dark:text-zinc-400 font-light">
-                        <Clock size={13} className="shrink-0 text-blue-700 dark:text-neon-green" />
+                    <div className="space-y-2 mb-4">
+                      <div className="flex items-center gap-2.5 text-xs text-slate-600 dark:text-slate-400 font-normal">
+                        <Clock size={13} className="shrink-0 text-blue-600 dark:text-neon-green" />
                         <span>{evt.time}</span>
                       </div>
-                      <div className="flex items-center gap-2.5 text-xs text-gray-500 dark:text-zinc-400 font-light">
-                        <MapPin size={13} className="shrink-0 text-gray-400 dark:text-zinc-500" />
+                      <div className="flex items-center gap-2.5 text-xs text-slate-600 dark:text-slate-400 font-normal">
+                        <MapPin size={13} className="shrink-0 text-slate-400 dark:text-slate-500" />
                         <span className="truncate">{evt.location}</span>
                       </div>
                     </div>
 
                     {/* Description */}
-                    <p className="text-sm text-gray-500 dark:text-zinc-400 leading-relaxed font-light mb-8">
+                    <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-light mb-6">
                       {evt.desc}
                     </p>
                   </div>
 
                   {/* Attendance & RSVP Toggle Section */}
-                  <div className="mt-auto pt-6 border-t border-gray-100 dark:border-zinc-800/60 flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-2 text-[10px] font-mono text-gray-400 dark:text-zinc-500">
+                  <div className="mt-auto pt-4 sm:pt-6 border-t border-slate-300/40 dark:border-slate-800/60 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-1.5 text-[9px] sm:text-[10px] font-mono text-slate-500 dark:text-slate-400">
                       <Users size={12} className="shrink-0" />
                       <span>{attendeesCount} ATTENDING</span>
                     </div>
@@ -228,16 +228,16 @@ export function UpcomingEvents() {
                         e.stopPropagation();
                         toggleRsvp(evt.id);
                       }}
-                      className={`px-5 py-2.5 font-black text-[9px] tracking-widest uppercase transition-all duration-300 rounded-none flex items-center gap-2 h-10 ${
+                      className={`px-5 py-2 rounded-full font-black text-[9px] tracking-widest uppercase transition-all duration-200 flex items-center gap-1.5 h-9 shrink-0 cursor-pointer ${
                         isRegistered
-                          ? 'bg-blue-50 dark:bg-neon-green/10 text-blue-700 dark:text-neon-green border border-blue-200 dark:border-neon-green/20'
-                          : 'bg-zinc-950 dark:bg-neon-green text-white dark:text-zinc-950 hover:scale-[1.03]'
+                          ? 'liquid-inset text-blue-600 dark:text-neon-green'
+                          : 'liquid-glass-accent text-slate-950 hover:scale-105'
                       }`}
                     >
                       {isRegistered ? (
                         <>
                           <Check size={10} strokeWidth={4} />
-                          <span>CANCEL RSVP</span>
+                          <span>CANCEL</span>
                         </>
                       ) : (
                         <>

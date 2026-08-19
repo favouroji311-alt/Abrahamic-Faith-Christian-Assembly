@@ -49,47 +49,51 @@ export function Navbar({ onConnect }: NavbarProps) {
   return (
     <nav
       className={cn(
-        'fixed top-0 left-0 right-0 z-50 transition-all duration-500 px-6 py-6',
-        isScrolled ? 'bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl shadow-sm py-3' : 'bg-transparent'
+        'fixed top-0 left-0 right-0 z-50 transition-all duration-500 px-3 sm:px-6 py-3 sm:py-5',
+        isScrolled ? 'py-2 sm:py-3' : 'bg-transparent'
       )}
     >
-      <div className="max-w-7xl mx-auto flex justify-between items-center bg-zinc-950/5 dark:bg-white/5 backdrop-blur-md rounded-full px-8 py-3 border border-white/10">
-        <div className="flex items-center gap-6">
-          <Link to="/" className="text-xl font-black tracking-tighter dark:text-white group flex items-center gap-2">
-            <span className="w-2 h-2 bg-neon-green rounded-full group-hover:animate-pulse"></span>
+      <div className="max-w-7xl mx-auto flex justify-between items-center liquid-glass rounded-full px-4 sm:px-8 py-2.5 sm:py-3.5 liquid-sheen">
+        <div className="flex items-center gap-3 sm:gap-6">
+          <Link to="/" className="text-base sm:text-lg font-black tracking-tight text-slate-900 dark:text-white group flex items-center gap-2.5 shrink-0">
+            <span className="w-2.5 h-2.5 bg-neon-green rounded-full shadow-[0_0_10px_#39ff14] group-hover:scale-125 transition-transform"></span>
             AFCA.STUDIO
           </Link>
-          <div className="hidden md:flex h-4 w-px bg-white/20"></div>
-          <span className="hidden lg:block caption-mono text-[8px] opacity-40">Apostolic / Vol 01</span>
+          <div className="hidden md:flex h-4 w-px bg-slate-300/60 dark:bg-slate-700/60"></div>
+          <span className="hidden lg:block caption-mono text-[8px] opacity-70">Apostolic / Assembly</span>
         </div>
 
         {/* Desktop Nav */}
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden md:flex items-center gap-2 lg:gap-3">
           {navLinks.map((link) => (
             <NavLink
               key={link.path}
               to={link.path}
               className={({ isActive }) =>
                 cn(
-                  'nav-label text-[9px] transition-all hover:text-neon-green',
-                  isActive ? 'text-blue-700 dark:text-neon-green font-black' : 'text-gray-400'
+                  'nav-label text-[10px] px-4 py-2 rounded-full transition-all duration-200',
+                  isActive
+                    ? 'liquid-inset text-blue-600 dark:text-neon-green font-black shadow-inner'
+                    : 'text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-white/30 dark:hover:bg-white/5'
                 )
               }
             >
               {link.name}
             </NavLink>
           ))}
-          <div className="flex items-center gap-2">
+          
+          <div className="flex items-center gap-2.5 ml-2">
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors text-gray-500 dark:text-white/50 hover:text-gray-900 dark:hover:text-white"
+              className="liquid-glass-button p-2.5 rounded-full text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-neon-green transition-colors cursor-pointer"
               title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              aria-label="Toggle Theme"
             >
-              {isDark ? <Sun size={12} /> : <Moon size={12} />}
+              {isDark ? <Sun size={14} className="text-amber-400" /> : <Moon size={14} />}
             </button>
             <button 
               onClick={onConnect}
-              className="px-6 py-2 bg-zinc-950 dark:bg-neon-green text-white dark:text-zinc-950 rounded-full nav-label text-[9px] font-black hover:scale-105 transition-all"
+              className="liquid-glass-accent px-6 py-2 rounded-full nav-label text-[10px] font-black text-slate-950 transition-all cursor-pointer"
             >
               Contact
             </button>
@@ -97,18 +101,20 @@ export function Navbar({ onConnect }: NavbarProps) {
         </div>
 
         {/* Mobile Toggle */}
-        <div className="flex items-center gap-4 md:hidden">
+        <div className="flex items-center gap-2 sm:gap-3 md:hidden">
           <button 
             onClick={toggleTheme} 
-            className="text-gray-600 dark:text-white hover:text-neon-green transition-colors"
+            className="liquid-glass-button p-2.5 rounded-full text-slate-800 dark:text-slate-200"
+            aria-label="Toggle Theme"
           >
-            {isDark ? <Sun size={20} /> : <Moon size={20} />}
+            {isDark ? <Sun size={16} className="text-amber-400" /> : <Moon size={16} />}
           </button>
           <button 
             onClick={() => setIsOpen(!isOpen)} 
-            className="text-gray-900 dark:text-white hover:text-neon-green transition-colors"
+            className="liquid-glass-button p-2.5 rounded-full text-slate-900 dark:text-white"
+            aria-label="Toggle Menu"
           >
-            {isOpen ? <X size={24} /> : <Menu size={24} />}
+            {isOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
         </div>
       </div>
@@ -117,12 +123,12 @@ export function Navbar({ onConnect }: NavbarProps) {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="absolute top-full left-0 right-0 bg-white dark:bg-zinc-950 border-t border-gray-100 dark:border-zinc-900 p-6 md:hidden shadow-2xl"
+            exit={{ opacity: 0, y: -10 }}
+            className="mt-3 liquid-glass-lg rounded-3xl p-6 md:hidden max-w-7xl mx-auto liquid-sheen"
           >
-            <div className="flex flex-col space-y-4">
+            <div className="flex flex-col space-y-3">
               {navLinks.map((link) => (
                 <NavLink
                   key={link.path}
@@ -130,8 +136,10 @@ export function Navbar({ onConnect }: NavbarProps) {
                   onClick={() => setIsOpen(false)}
                   className={({ isActive }) =>
                     cn(
-                      'text-lg font-black tracking-tighter transition-colors uppercase',
-                      isActive ? 'text-blue-700 dark:text-neon-green' : 'text-gray-500 dark:text-white'
+                      'text-sm font-bold tracking-wide uppercase py-3 px-4 rounded-xl transition-all',
+                      isActive 
+                        ? 'liquid-inset text-blue-600 dark:text-neon-green font-black' 
+                        : 'text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white'
                     )
                   }
                 >
@@ -143,7 +151,7 @@ export function Navbar({ onConnect }: NavbarProps) {
                   setIsOpen(false);
                   onConnect();
                 }}
-                className="bg-zinc-950 dark:bg-neon-green text-white dark:text-blue-900 px-6 py-4 rounded-none font-black text-center uppercase text-sm tracking-widest"
+                className="mt-2 liquid-glass-accent text-slate-950 px-6 py-3.5 rounded-2xl font-black text-center uppercase text-xs tracking-widest active:scale-95 transition-transform cursor-pointer"
               >
                 Connect With Us
               </button>
