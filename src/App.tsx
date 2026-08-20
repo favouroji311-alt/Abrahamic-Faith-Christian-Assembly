@@ -10,7 +10,7 @@ import { About } from './pages/About';
 import { Ministries } from './pages/Ministries';
 import { Sermons } from './pages/Sermons';
 import { DailyVerse } from './components/DailyVerse';
-import { ConnectModal } from './components/ConnectModal';
+import { ConnectModal, type MessageType } from './components/ConnectModal';
 
 function PageTransition({ children }: { children: ReactNode }) {
   const location = useLocation();
@@ -31,6 +31,12 @@ function PageTransition({ children }: { children: ReactNode }) {
 
 export default function App() {
   const [isConnectOpen, setIsConnectOpen] = useState(false);
+  const [connectMessageType, setConnectMessageType] = useState<MessageType>('General Inquiry');
+
+  const handleOpenConnect = (type: MessageType = 'General Inquiry') => {
+    setConnectMessageType(type);
+    setIsConnectOpen(true);
+  };
 
   return (
     <Router>
@@ -43,13 +49,13 @@ export default function App() {
           <div className="absolute -bottom-40 left-1/4 w-[420px] h-[420px] sm:w-[600px] sm:h-[600px] rounded-full bg-gradient-to-tr from-cyan-400/15 via-blue-400/15 to-indigo-400/10 dark:from-cyan-700/10 dark:via-blue-800/10 dark:to-emerald-800/10 blur-3xl animate-liquid-pulse" />
         </div>
 
-        <Navbar onConnect={() => setIsConnectOpen(true)} />
+        <Navbar onConnect={() => handleOpenConnect('General Inquiry')} />
         <main className="flex-grow">
           <PageTransition>
             <Routes>
-              <Route path="/" element={<Home />} />
+              <Route path="/" element={<Home onOpenConnect={handleOpenConnect} />} />
               <Route path="/about" element={<About />} />
-              <Route path="/ministries" element={<Ministries />} />
+              <Route path="/ministries" element={<Ministries onOpenConnect={handleOpenConnect} />} />
               <Route path="/sermons" element={<Sermons />} />
             </Routes>
           </PageTransition>
@@ -62,6 +68,7 @@ export default function App() {
 
         <ConnectModal 
           isOpen={isConnectOpen} 
+          defaultMessageType={connectMessageType}
           onClose={() => setIsConnectOpen(false)} 
         />
       </div>

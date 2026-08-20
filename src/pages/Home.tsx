@@ -2,8 +2,13 @@ import { motion } from 'motion/react';
 import { ArrowRight, Calendar, Users, Music, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { UpcomingEvents } from '../components/UpcomingEvents';
+import type { MessageType } from '../components/ConnectModal';
 
-export function Home() {
+interface HomeProps {
+  onOpenConnect?: (type: MessageType) => void;
+}
+
+export function Home({ onOpenConnect }: HomeProps) {
   return (
     <div className="relative overflow-hidden">
       {/* Hero Section */}
@@ -71,7 +76,6 @@ export function Home() {
       <section className="py-16 sm:py-24 md:py-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-12 gap-8 lg:gap-12">
           <div className="col-span-12 lg:col-span-8 liquid-glass p-6 sm:p-10 md:p-12 rounded-3xl sm:rounded-[2.5rem] liquid-sheen">
-            <span className="caption-mono mb-3 sm:mb-4 block text-blue-600 dark:text-neon-green">Selected Mission / Vol 01</span>
             <h3 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black mb-6 sm:mb-8 leading-none tracking-tight text-slate-900 dark:text-white">
               TO SET THE CAPTIVES<br/><span className="text-slate-400 dark:text-slate-600 italic">FREE</span>
             </h3>
@@ -95,14 +99,13 @@ export function Home() {
 
           <div className="col-span-12 lg:col-span-4 flex flex-col justify-between gap-6">
             <div className="liquid-glass p-6 sm:p-8 rounded-3xl liquid-sheen">
-              <h4 className="caption-mono mb-4 text-blue-600 dark:text-neon-green">Metrics</h4>
               <div className="grid grid-cols-2 gap-4">
                 <div className="liquid-inset p-4 rounded-2xl flex flex-col items-center justify-center text-center">
                   <span className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white">30+</span>
                   <span className="caption-mono text-[8px] opacity-70 mt-1">Years Active</span>
                 </div>
                 <div className="liquid-inset p-4 rounded-2xl flex flex-col items-center justify-center text-center">
-                  <span className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white">1k+</span>
+                  <span className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white">200+</span>
                   <span className="caption-mono text-[8px] opacity-70 mt-1">Members</span>
                 </div>
               </div>
@@ -110,7 +113,6 @@ export function Home() {
 
             <div className="liquid-glass p-6 sm:p-8 rounded-3xl flex-1 flex flex-col justify-between liquid-sheen">
               <div>
-                <span className="caption-mono block mb-2 text-blue-600 dark:text-neon-green">Featured Series</span>
                 <h4 className="text-lg sm:text-xl font-black mb-3 text-slate-900 dark:text-white leading-snug">PROJECT ZENITH: Faith Reimagined</h4>
                 <p className="text-xs text-slate-600 dark:text-slate-400 font-light leading-relaxed mb-4">
                   Experience apostolic revelation and actionable spiritual insights.
@@ -128,7 +130,6 @@ export function Home() {
       <section className="py-16 sm:py-24 md:py-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="mb-12 sm:mb-16">
-            <span className="caption-mono mb-3 block text-blue-600 dark:text-neon-green">Commitment / Active</span>
             <h3 className="text-3xl sm:text-5xl md:text-7xl font-black text-slate-900 dark:text-white tracking-tight leading-none">
               ACTIVE <span className="text-slate-400 dark:text-slate-600 italic">MINISTRIES.</span>
             </h3>
@@ -218,7 +219,6 @@ export function Home() {
       {/* Call to Action */}
       <section className="py-16 sm:py-24 px-4 sm:px-6">
         <div className="max-w-5xl mx-auto liquid-glass-lg rounded-3xl sm:rounded-[3rem] p-8 sm:p-14 md:p-20 text-center relative overflow-hidden liquid-sheen">
-          <span className="caption-mono mb-4 block text-blue-600 dark:text-neon-green">Next Steps / Connection</span>
           <h2 className="text-3xl sm:text-5xl md:text-6xl font-black text-slate-900 dark:text-white mb-6 tracking-tight leading-tight">
             READY TO JOIN THE <span className="text-neon-green italic underline decoration-slate-300 dark:decoration-slate-700">FAMILY?</span>
           </h2>
@@ -226,7 +226,10 @@ export function Home() {
             We can't wait to meet you. Whether you're a lifelong believer or just curious, 
             there's a seat waiting for you at AFCA.
           </p>
-          <button className="liquid-glass-accent text-slate-950 px-8 sm:px-14 py-4 sm:py-6 rounded-2xl font-black text-sm sm:text-lg uppercase tracking-wider cursor-pointer">
+          <button 
+            onClick={() => onOpenConnect?.('General Inquiry')}
+            className="liquid-glass-accent text-slate-950 px-8 sm:px-14 py-4 sm:py-6 rounded-2xl font-black text-sm sm:text-lg uppercase tracking-wider cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-transform"
+          >
             GET CONNECTED TODAY
           </button>
         </div>

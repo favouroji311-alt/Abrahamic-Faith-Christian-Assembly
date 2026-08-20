@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Calendar, Clock, MapPin, Check, Users, ArrowRight, Bell, Sparkles } from 'lucide-react';
+import { Calendar, Clock, MapPin, Check, Users, ArrowRight, Bell } from 'lucide-react';
 
 interface ChurchEvent {
   id: string;
@@ -121,9 +121,6 @@ export function UpcomingEvents() {
         {/* Header Block */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 sm:gap-12 mb-12 sm:mb-16">
           <div>
-            <span className="caption-mono mb-3 sm:mb-4 block text-blue-600 dark:text-neon-green flex items-center gap-2">
-              <Sparkles size={12} className="animate-pulse" /> Chronicles / Live Calendar
-            </span>
             <h2 className="text-3xl sm:text-5xl md:text-7xl font-black text-slate-900 dark:text-white tracking-tight leading-none uppercase">
               UPCOMING <span className="text-slate-400 dark:text-slate-600 italic">ACTIVITIES.</span>
             </h2>

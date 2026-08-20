@@ -15,7 +15,6 @@ export function Sermons() {
     <div className="pt-20 sm:pt-24 min-h-screen overflow-hidden">
       <section className="py-16 sm:py-24 md:py-28 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
-          <span className="caption-mono mb-4 block text-blue-600 dark:text-neon-green">Teachings / Vol 04</span>
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -114,7 +113,6 @@ export function Sermons() {
       <section className="py-16 sm:py-24 md:py-32 border-t border-slate-300/40 dark:border-slate-800/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="mb-12 sm:mb-16">
-            <span className="caption-mono mb-3 block text-blue-600 dark:text-neon-green">History / Vault</span>
             <h2 className="text-3xl sm:text-5xl md:text-7xl font-black text-slate-900 dark:text-white tracking-tight leading-none uppercase">
               SERMON <span className="text-slate-400 dark:text-slate-600 italic">ARCHIVE.</span>
             </h2>

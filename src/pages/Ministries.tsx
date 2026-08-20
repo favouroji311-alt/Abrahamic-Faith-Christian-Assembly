@@ -1,8 +1,12 @@
 import { motion } from 'motion/react';
-import { Music, Heart, Clock, Calendar, Sparkles, Users, ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Music, Heart, Clock, ArrowRight } from 'lucide-react';
+import type { MessageType } from '../components/ConnectModal';
 
-export function Ministries() {
+interface MinistriesProps {
+  onOpenConnect?: (type: MessageType) => void;
+}
+
+export function Ministries({ onOpenConnect }: MinistriesProps) {
   const ministries = [
     {
       title: 'Worship & Art',
@@ -38,7 +42,6 @@ export function Ministries() {
     <div className="pt-20 sm:pt-24 min-h-screen overflow-hidden">
       <section className="py-16 sm:py-24 md:py-28">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <span className="caption-mono mb-4 block text-blue-600 dark:text-neon-green">Commitment / Assembly</span>
           <motion.h1 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -105,10 +108,13 @@ export function Ministries() {
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2 text-xs font-bold text-blue-600 dark:text-neon-green group-hover:translate-x-1 transition-transform self-start sm:self-auto">
-                  <span>Explore</span>
+                <button 
+                  onClick={() => onOpenConnect?.('Volunteer Interest')}
+                  className="flex items-center gap-2 text-xs font-bold text-blue-600 dark:text-neon-green group-hover:translate-x-1 transition-transform self-start sm:self-auto cursor-pointer"
+                >
+                  <span>Get Involved</span>
                   <ArrowRight size={14} strokeWidth={2.5} />
-                </div>
+                </button>
               </div>
             </motion.div>
           ))}
@@ -119,7 +125,6 @@ export function Ministries() {
       <section className="py-12 sm:py-20 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto liquid-glass-lg rounded-3xl sm:rounded-[3rem] p-8 sm:p-12 md:p-16 relative overflow-hidden flex flex-col md:flex-row items-center gap-8 md:gap-12 liquid-sheen">
           <div className="relative z-10 flex-grow w-full md:w-auto">
-            <span className="caption-mono mb-3 block text-blue-600 dark:text-neon-green">Get Involved / Serve</span>
             <h2 className="text-3xl sm:text-5xl md:text-6xl font-black mb-4 tracking-tight leading-none text-slate-900 dark:text-white">
               CALLED TO <br /> <span className="italic text-neon-green underline decoration-slate-300 dark:decoration-slate-700">SERVE?</span>
             </h2>
@@ -127,12 +132,12 @@ export function Ministries() {
               Your talents and gifts are uniquely designed by God for His purpose. 
               Join a team today and make an eternal impact.
             </p>
-            <Link 
-              to="/about"
-              className="inline-flex liquid-glass-accent text-slate-950 px-8 sm:px-12 py-4 rounded-2xl font-black text-sm sm:text-base uppercase tracking-wider cursor-pointer"
+            <button 
+              onClick={() => onOpenConnect?.('Volunteer Interest')}
+              className="inline-flex items-center gap-2 liquid-glass-accent text-slate-950 px-8 sm:px-12 py-4 rounded-2xl font-black text-sm sm:text-base uppercase tracking-wider cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-transform"
             >
-              VOLUNTEER NOW
-            </Link>
+              VOLUNTEER NOW <ArrowRight size={16} strokeWidth={2.5} />
+            </button>
           </div>
         </div>
       </section>
