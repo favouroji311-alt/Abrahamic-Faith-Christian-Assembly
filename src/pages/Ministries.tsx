@@ -1,21 +1,44 @@
 import { motion } from 'motion/react';
-import { Shield, Music, Heart, Zap, Globe, BookOpen } from 'lucide-react';
+import { Music, Heart, Clock, Calendar, Sparkles, Users, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export function Ministries() {
   const ministries = [
-    { title: 'Youth Impact', icon: Zap, color: 'text-amber-500', desc: 'Equipping teens (ages 10-19) with the tools to navigate a modern world through faith.', time: 'Every Second Sunday' },
-    { title: 'Worship & Arts', icon: Music, color: 'text-blue-600 dark:text-neon-green', desc: 'Bringing glory to God through music, dance, and technical production.', time: 'Saturdays @ 10AM' },
-    { title: 'Women of Grace', icon: Heart, color: 'text-rose-500', desc: 'Building strong women of faith and purpose through fellowship and prayer.', time: 'First Saturdays @ 8AM' },
-    { title: 'Global Outreach', icon: Globe, color: 'text-emerald-500', desc: 'Fulfilling the great commission through local and international missions.', time: 'Monthly outreaches' },
-    { title: 'Men\'s Fellowship', icon: Shield, color: 'text-indigo-500', desc: 'Strengthening men to lead their families and communities for Christ.', time: 'Bi-weekly Fridays' },
-    { title: 'Bible Institute', icon: BookOpen, color: 'text-cyan-500', desc: 'Deep theological training for those hungry for the meat of the Word.', time: 'Contact for schedule' },
+    {
+      title: 'Worship & Art',
+      type: 'Midweek Service',
+      schedule: 'Wednesday @ 5:30pm',
+      icon: Music,
+      accentColor: 'text-blue-600 dark:text-neon-green',
+      badgeBg: 'border-blue-500/30 text-blue-600 dark:text-neon-green',
+      desc: 'Bringing glory to God through authentic worship, creative expression, sound, and word in our uplifting midweek service.',
+      highlights: [
+        'Apostolic Praise & Adoration',
+        'Midweek Spiritual Refreshing',
+        'Creative Expression & Production'
+      ]
+    },
+    {
+      title: 'Women of Grace',
+      type: 'Women\'s Fellowship',
+      schedule: 'Bi-weekly Sunday 11:45am',
+      icon: Heart,
+      accentColor: 'text-rose-500',
+      badgeBg: 'border-rose-500/30 text-rose-500',
+      desc: 'Empowering and building strong women of faith, character, and divine purpose through fellowship, mutual support, and prayer.',
+      highlights: [
+        'Sisterhood & Mutual Uplifting',
+        'Biblical Leadership & Character',
+        'Focused Intercession & Prayer'
+      ]
+    },
   ];
 
   return (
     <div className="pt-20 sm:pt-24 min-h-screen overflow-hidden">
       <section className="py-16 sm:py-24 md:py-28">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <span className="caption-mono mb-4 block text-blue-600 dark:text-neon-green">Commitment / Vol 01</span>
+          <span className="caption-mono mb-4 block text-blue-600 dark:text-neon-green">Commitment / Assembly</span>
           <motion.h1 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -24,32 +47,68 @@ export function Ministries() {
             ACTIVE <span className="text-neon-green italic underline decoration-slate-300 dark:decoration-slate-700">MINISTRIES.</span>
           </motion.h1>
           <p className="text-base sm:text-xl md:text-2xl text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed font-light">
-            Find your place in our community. There's a ministry for everyone to serve and be served.
+            Connect with our vibrant ministry branches. Find your spiritual home to grow, worship, and build meaningful relationships in Christ.
           </p>
         </div>
       </section>
 
-      <section className="py-12 sm:py-20 max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+      {/* Ministries Grid */}
+      <section className="py-8 sm:py-16 max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-10">
           {ministries.map((m, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              whileHover={{ y: -4 }}
-              className="liquid-glass p-6 sm:p-8 rounded-3xl flex flex-col h-full group cursor-pointer liquid-sheen"
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1, duration: 0.4 }}
+              whileHover={{ y: -6 }}
+              className="liquid-glass-lg p-8 sm:p-10 rounded-3xl sm:rounded-[2.5rem] flex flex-col justify-between group cursor-pointer liquid-sheen relative overflow-hidden"
             >
-              <div className={`w-14 h-14 liquid-inset rounded-2xl flex items-center justify-center ${m.color} mb-6 group-hover:scale-105 transition-transform duration-300`}>
-                <m.icon size={26} />
+              <div>
+                <div className="flex items-center justify-between gap-4 mb-6">
+                  <div className={`w-16 h-16 liquid-inset rounded-2xl flex items-center justify-center ${m.accentColor} group-hover:scale-110 transition-transform duration-300`}>
+                    <m.icon size={30} strokeWidth={1.75} />
+                  </div>
+                  <span className={`caption-mono text-[9px] sm:text-[10px] px-3.5 py-1.5 rounded-full liquid-inset border ${m.badgeBg}`}>
+                    {m.type}
+                  </span>
+                </div>
+
+                <h3 className="text-2xl sm:text-3xl md:text-4xl font-black mb-3 text-slate-900 dark:text-white leading-tight tracking-tight">
+                  {m.title}
+                </h3>
+                
+                <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base mb-8 leading-relaxed font-light">
+                  {m.desc}
+                </p>
+
+                {/* Key Focus Points */}
+                <div className="space-y-2.5 mb-8">
+                  {m.highlights.map((point, idx) => (
+                    <div key={idx} className="flex items-center gap-3 text-xs sm:text-sm text-slate-700 dark:text-slate-300">
+                      <div className="w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-neon-green shrink-0"></div>
+                      <span>{point}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <h3 className="text-xl sm:text-2xl font-black mb-3 text-slate-900 dark:text-white leading-tight tracking-tight">{m.title}</h3>
-              <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm mb-6 flex-grow leading-relaxed font-light">
-                {m.desc}
-              </p>
-              <div className="pt-4 border-t border-slate-300/40 dark:border-slate-800/60">
-                <span className="caption-mono !text-[8px] opacity-60">Frequency</span>
-                <p className="nav-label mt-1 text-slate-900 dark:text-white">{m.time}</p>
+
+              {/* Schedule Info Box */}
+              <div className="pt-6 border-t border-slate-300/40 dark:border-slate-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <span className="caption-mono !text-[8px] opacity-60 flex items-center gap-1.5">
+                    <Clock size={11} /> SCHEDULE / GATHERING
+                  </span>
+                  <p className="nav-label mt-1 text-base sm:text-lg text-slate-900 dark:text-white font-bold tracking-wide">
+                    {m.schedule}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 text-xs font-bold text-blue-600 dark:text-neon-green group-hover:translate-x-1 transition-transform self-start sm:self-auto">
+                  <span>Explore</span>
+                  <ArrowRight size={14} strokeWidth={2.5} />
+                </div>
               </div>
             </motion.div>
           ))}
@@ -58,22 +117,26 @@ export function Ministries() {
 
       {/* Volunteers CTA */}
       <section className="py-12 sm:py-20 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto liquid-glass-lg rounded-3xl sm:rounded-[3rem] p-8 sm:p-12 md:p-16 relative overflow-hidden flex flex-col md:flex-row items-center gap-8 md:gap-12 liquid-sheen">
+        <div className="max-w-6xl mx-auto liquid-glass-lg rounded-3xl sm:rounded-[3rem] p-8 sm:p-12 md:p-16 relative overflow-hidden flex flex-col md:flex-row items-center gap-8 md:gap-12 liquid-sheen">
           <div className="relative z-10 flex-grow w-full md:w-auto">
-            <span className="caption-mono mb-3 block text-blue-600 dark:text-neon-green">Get Involved</span>
+            <span className="caption-mono mb-3 block text-blue-600 dark:text-neon-green">Get Involved / Serve</span>
             <h2 className="text-3xl sm:text-5xl md:text-6xl font-black mb-4 tracking-tight leading-none text-slate-900 dark:text-white">
               CALLED TO <br /> <span className="italic text-neon-green underline decoration-slate-300 dark:decoration-slate-700">SERVE?</span>
             </h2>
             <p className="text-sm sm:text-base md:text-lg text-slate-600 dark:text-slate-300 font-light max-w-lg mb-8">
               Your talents and gifts are uniquely designed by God for His purpose. 
-              Join a team today and make an impact.
+              Join a team today and make an eternal impact.
             </p>
-            <button className="liquid-glass-accent text-slate-950 px-8 sm:px-12 py-4 rounded-2xl font-black text-sm sm:text-base uppercase tracking-wider cursor-pointer">
+            <Link 
+              to="/about"
+              className="inline-flex liquid-glass-accent text-slate-950 px-8 sm:px-12 py-4 rounded-2xl font-black text-sm sm:text-base uppercase tracking-wider cursor-pointer"
+            >
               VOLUNTEER NOW
-            </button>
+            </Link>
           </div>
         </div>
       </section>
     </div>
   );
 }
+

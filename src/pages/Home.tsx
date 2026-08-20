@@ -135,47 +135,59 @@ export function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 h-auto">
-            {/* Main Featured Card */}
+            {/* Main Featured Card - Worship & Art */}
             <motion.div 
               whileHover={{ y: -4 }}
               className="md:col-span-8 md:row-span-2 liquid-glass-lg p-6 sm:p-10 md:p-12 rounded-3xl sm:rounded-[2.5rem] relative overflow-hidden group cursor-pointer liquid-sheen"
             >
-              <div className="relative z-10 h-full flex flex-col justify-between">
+              <Link to="/ministries" className="relative z-10 h-full flex flex-col justify-between block">
                 <div>
-                  <div className="liquid-inset p-4 rounded-2xl w-fit mb-6 sm:mb-8 text-blue-600 dark:text-neon-green">
-                    <Music size={36} strokeWidth={1.5} />
+                  <div className="flex items-center justify-between gap-4 mb-6 sm:mb-8">
+                    <div className="liquid-inset p-4 rounded-2xl w-fit text-blue-600 dark:text-neon-green">
+                      <Music size={36} strokeWidth={1.5} />
+                    </div>
+                    <span className="caption-mono text-[9px] sm:text-[10px] px-3.5 py-1.5 rounded-full liquid-inset border border-blue-500/30 text-blue-600 dark:text-neon-green">
+                      Midweek Service
+                    </span>
                   </div>
-                  <h4 className="text-2xl sm:text-4xl md:text-5xl font-black mb-4 text-slate-900 dark:text-white tracking-tight">WORSHIP & ARTS.</h4>
+                  <h4 className="text-2xl sm:text-4xl md:text-5xl font-black mb-4 text-slate-900 dark:text-white tracking-tight">WORSHIP & ART.</h4>
                   <p className="text-sm sm:text-base md:text-lg text-slate-600 dark:text-slate-300 max-w-md leading-relaxed font-light mb-8">
-                    Bringing glory to God through high-impact music, sound engineering, and creative excellence.
+                    Bringing glory to God through inspiring worship, creative arts, and spiritual renewal in our midweek assembly.
                   </p>
                 </div>
                 <div className="flex gap-4 items-center flex-wrap">
                   <span className="liquid-inset px-4 py-2 rounded-full caption-mono text-[9px] sm:text-[10px] text-slate-700 dark:text-slate-300 font-bold">
-                    Saturdays @ 10AM
+                    Wednesday @ 5:30pm
                   </span>
                   <div className="liquid-glass-button p-3 sm:p-3.5 rounded-full text-blue-600 dark:text-neon-green" aria-label="Learn More">
                     <ArrowRight size={18} strokeWidth={2.5} />
                   </div>
                 </div>
-              </div>
+              </Link>
             </motion.div>
 
-            {/* Youth Impact */}
+            {/* Women of Grace */}
             <motion.div 
               whileHover={{ y: -4 }}
               className="md:col-span-4 liquid-glass p-6 sm:p-8 rounded-3xl text-slate-900 dark:text-white flex flex-col justify-between min-h-[220px] liquid-sheen"
             >
-              <div>
-                <div className="liquid-inset p-3 rounded-2xl w-fit mb-4 text-rose-500">
-                  <Heart size={22} />
+              <Link to="/ministries" className="flex flex-col justify-between h-full">
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="liquid-inset p-3 rounded-2xl w-fit text-rose-500">
+                      <Heart size={22} />
+                    </div>
+                    <span className="caption-mono text-[8px] px-2.5 py-1 rounded-full liquid-inset border border-rose-500/30 text-rose-500">
+                      Fellowship
+                    </span>
+                  </div>
+                  <h4 className="text-xl sm:text-2xl font-black mb-2 leading-tight">WOMEN OF GRACE.</h4>
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-light leading-relaxed mb-4">
+                    Empowering and building strong women of faith, character, and divine purpose.
+                  </p>
                 </div>
-                <h4 className="text-xl sm:text-2xl font-black mb-2 leading-tight">YOUTH IMPACT.</h4>
-                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-light leading-relaxed mb-4">
-                  Equipping the next generation to navigate a modern world through deep faith.
-                </p>
-              </div>
-              <span className="caption-mono text-blue-600 dark:text-neon-green font-bold">Every 2nd Sunday</span>
+                <span className="caption-mono text-blue-600 dark:text-neon-green font-bold">Bi-weekly Sun 11:45am</span>
+              </Link>
             </motion.div>
 
             {/* Sunday Service */}
@@ -183,16 +195,18 @@ export function Home() {
               whileHover={{ y: -4 }}
               className="md:col-span-4 liquid-glass p-6 sm:p-8 rounded-3xl flex flex-col justify-between min-h-[220px] liquid-sheen"
             >
-              <div>
-                <div className="liquid-inset p-3 rounded-2xl w-fit mb-4 text-blue-600 dark:text-neon-green">
-                  <Calendar size={22} />
+              <Link to="/sermons" className="flex flex-col justify-between h-full">
+                <div>
+                  <div className="liquid-inset p-3 rounded-2xl w-fit mb-4 text-blue-600 dark:text-neon-green">
+                    <Calendar size={22} />
+                  </div>
+                  <h4 className="text-xl sm:text-2xl font-black mb-2 leading-tight text-slate-900 dark:text-white">SUNDAY SERVICE.</h4>
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-light leading-relaxed mb-4">
+                    Join our apostolic gathering for a transformative worship and teaching experience.
+                  </p>
                 </div>
-                <h4 className="text-xl sm:text-2xl font-black mb-2 leading-tight text-slate-900 dark:text-white">SUNDAY SERVICE.</h4>
-                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-light leading-relaxed mb-4">
-                  Join our apostolic gathering for a transformative worship and teaching experience.
-                </p>
-              </div>
-              <span className="caption-mono text-blue-600 dark:text-neon-green font-bold">09:00 AM</span>
+                <span className="caption-mono text-blue-600 dark:text-neon-green font-bold">Sundays @ 09:00 AM</span>
+              </Link>
             </motion.div>
           </div>
         </div>
