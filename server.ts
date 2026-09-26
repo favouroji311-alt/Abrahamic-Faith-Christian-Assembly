@@ -114,6 +114,51 @@ app.get('/api/daily-verse', async (req, res) => {
   }
 });
 
+// Audio proxy endpoint for streaming audio reliably through backend with byte ranges
+app.get('/api/audio-proxy', async (req, res) => {
+  const audioUrl = req.query.url as string;
+  if (!audioUrl) {
+    return res.status(400).send('Missing audio url parameter');
+  }
+
+  try {
+    const headers: Record<string, string> = {};
+    if (req.headers.range) {
+      headers['Range'] = req.headers.range;
+    }
+
+    const upstreamRes = await fetch(audioUrl, { headers });
+
+    res.status(upstreamRes.status);
+    upstreamRes.headers.forEach((val, key) => {
+      const lower = key.toLowerCase();
+      if (!['transfer-encoding', 'connection', 'host'].includes(lower)) {
+        res.setHeader(key, val);
+      }
+    });
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Accept-Ranges', 'bytes');
+
+    if (upstreamRes.body) {
+      const reader = upstreamRes.body.getReader();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        res.write(Buffer.from(value));
+      }
+      res.end();
+    } else {
+      res.end();
+    }
+  } catch (err: any) {
+    console.error('Audio proxy streaming error:', err);
+    if (!res.headersSent) {
+      res.status(500).send('Audio streaming error');
+    }
+  }
+});
+
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({

@@ -7,39 +7,53 @@ import {
   Search, 
   Volume2, 
   Download, 
-  Database, 
-  CheckCircle2, 
   Sparkles,
   Radio,
   FileAudio,
   Calendar,
-  Settings2,
-  RefreshCw
+  RotateCcw,
+  RotateCw,
+  Loader2,
+  Headphones,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import { useAudio } from '../context/AudioContext';
 import { 
-  fetchSermonsFromSupabase, 
+  fetchSermons, 
   Sermon, 
   INITIAL_SERMONS 
-} from '../lib/supabase';
-import { SupabaseSyncModal } from '../components/SupabaseSyncModal';
+} from '../lib/sermons';
 
 export function Sermons() {
-  const { currentTrack, isPlaying, playTrack, togglePlay } = useAudio();
+  const { 
+    currentTrack, 
+    isPlaying, 
+    isLoading: isAudioLoading, 
+    currentTime, 
+    duration, 
+    playTrack, 
+    togglePlay, 
+    seek, 
+    skipTime, 
+    formatTime,
+    playbackError,
+    retryPlayback,
+    isDockedPlayerOpen,
+    setIsDockedPlayerOpen,
+    toggleDockedPlayer
+  } = useAudio();
   const [sermons, setSermons] = useState<Sermon[]>(INITIAL_SERMONS);
   const [isLoading, setIsLoading] = useState(true);
-  const [isFromSupabase, setIsFromSupabase] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTopic, setSelectedTopic] = useState('All Topics');
-  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
 
-  // Load sermons from Supabase on mount
+  // Load sermons on mount
   const loadSermons = async () => {
     setIsLoading(true);
     try {
-      const result = await fetchSermonsFromSupabase();
+      const result = await fetchSermons();
       setSermons(result.sermons);
-      setIsFromSupabase(result.isFromSupabase);
     } catch (err) {
       console.warn('Failed to fetch sermons:', err);
     } finally {
@@ -84,11 +98,6 @@ export function Sermons() {
                   <Radio size={12} className="text-blue-600 dark:text-neon-green animate-pulse" />
                   AUDIO TEACHINGS ARCHIVE
                 </span>
-                {isFromSupabase && (
-                  <span className="caption-mono !text-[9px] px-3 py-1 liquid-inset rounded-full text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
-                    <CheckCircle2 size={12} /> SUPABASE LIVE
-                  </span>
-                )}
               </div>
               <motion.h1 
                 initial={{ opacity: 0, y: 20 }}
@@ -98,30 +107,8 @@ export function Sermons() {
                 SERMON <span className="text-blue-600 dark:text-neon-green italic underline decoration-slate-300 dark:decoration-slate-700 uppercase">Vault.</span>
               </motion.h1>
               <p className="text-base sm:text-xl text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed font-light mt-3">
-                Stream spirit-filled audio messages and sermons directly from our cloud storage vault.
+                Stream spirit-filled audio messages and sermons directly from our media vault.
               </p>
-            </div>
-
-            {/* Supabase Table Manage / Sync Button */}
-            <div className="flex items-center gap-3 shrink-0">
-              <button
-                onClick={() => setIsSyncModalOpen(true)}
-                className="liquid-glass-button px-4 sm:px-5 py-2.5 rounded-full text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-neon-green flex items-center gap-2 cursor-pointer shadow-md"
-              >
-                <Database size={15} className="text-blue-600 dark:text-neon-green" />
-                <span>Supabase Database</span>
-                <Settings2 size={13} className="opacity-60" />
-              </button>
-
-              <button
-                onClick={loadSermons}
-                disabled={isLoading}
-                className="p-2.5 rounded-full liquid-glass-button text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-neon-green cursor-pointer"
-                title="Refresh from Supabase table"
-                aria-label="Refresh sermons"
-              >
-                <RefreshCw size={15} className={isLoading ? 'animate-spin' : ''} />
-              </button>
             </div>
           </div>
 
@@ -168,27 +155,107 @@ export function Sermons() {
                   </div>
                 </div>
 
+                {/* Inline Progress Bar for Featured Track */}
+                <div className="pt-2 space-y-1.5">
+                  {playbackError && currentTrack?.id === featuredSermon.id && (
+                    <div className="text-[11px] text-amber-500 bg-amber-500/10 border border-amber-500/20 rounded-xl px-3 py-1.5 flex items-center justify-between">
+                      <span>{playbackError}</span>
+                      <button
+                        onClick={retryPlayback}
+                        className="font-bold underline cursor-pointer text-blue-600 dark:text-neon-green ml-2"
+                      >
+                        Retry
+                      </button>
+                    </div>
+                  )}
+
+                  <div 
+                    onClick={(e) => {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const clickX = e.clientX - rect.left;
+                      const newPercent = Math.max(0, Math.min(1, clickX / rect.width));
+                      if (currentTrack?.id !== featuredSermon.id) {
+                        playTrack(featuredSermon);
+                      }
+                      seek(newPercent * (duration || 3320));
+                    }}
+                    className="h-2 w-full liquid-inset rounded-full cursor-pointer relative overflow-hidden group"
+                    role="slider"
+                    aria-label="Seek timeline"
+                  >
+                    <div 
+                      className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-blue-600 to-cyan-400 dark:from-emerald-500 dark:to-neon-green rounded-full transition-[width] duration-100"
+                      style={{ 
+                        width: `${currentTrack?.id === featuredSermon.id && duration > 0 ? (currentTime / duration) * 100 : 0}%` 
+                      }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-[10px] font-mono text-slate-500 dark:text-slate-400">
+                    <span>{currentTrack?.id === featuredSermon.id ? formatTime(currentTime) : '0:00'}</span>
+                    <span>{currentTrack?.id === featuredSermon.id && duration > 0 ? formatTime(duration) : '55:20'}</span>
+                  </div>
+                </div>
+
                 {/* Main Action Buttons */}
-                <div className="flex flex-wrap items-center gap-4 pt-4">
+                <div className="flex flex-wrap items-center gap-3 pt-2">
                   <button
                     onClick={() => {
                       if (currentTrack?.id === featuredSermon.id) {
                         togglePlay();
                       } else {
-                        playTrack(featuredSermon);
+                        playTrack(featuredSermon, false);
                       }
                     }}
-                    className="liquid-glass-accent text-slate-950 px-6 sm:px-8 py-3.5 sm:py-4 rounded-full font-black text-xs uppercase tracking-widest flex items-center gap-3 cursor-pointer hover:scale-105 transition-all shadow-xl"
+                    className="liquid-glass-accent text-slate-950 px-6 sm:px-8 py-3.5 sm:py-4 rounded-full font-black text-xs uppercase tracking-widest flex items-center gap-3 cursor-pointer hover:scale-105 active:scale-95 transition-all shadow-xl"
                   >
-                    {isFeaturedPlaying ? (
+                    {isAudioLoading && currentTrack?.id === featuredSermon.id ? (
                       <>
-                        <Pause size={18} fill="currentColor" /> PAUSE MESSAGE
+                        <Loader2 size={18} className="animate-spin" /> LOADING...
+                      </>
+                    ) : isFeaturedPlaying ? (
+                      <>
+                        <Pause size={18} fill="currentColor" /> PAUSE
                       </>
                     ) : (
                       <>
-                        <Play size={18} fill="currentColor" /> LISTEN NOW (AUDIO)
+                        <Play size={18} fill="currentColor" /> PLAY
                       </>
                     )}
+                  </button>
+
+                  {/* Toggle Docked Player Button */}
+                  <button
+                    onClick={() => {
+                      if (currentTrack?.id !== featuredSermon.id) {
+                        playTrack(featuredSermon, true);
+                      } else {
+                        toggleDockedPlayer();
+                      }
+                    }}
+                    className="liquid-glass-button px-4 py-3.5 rounded-full text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-neon-green flex items-center gap-2 cursor-pointer shadow-sm"
+                    title={isDockedPlayerOpen ? "Minimize to background playback" : "Open persistent docked player bar"}
+                  >
+                    {isDockedPlayerOpen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+                    <span>{isDockedPlayerOpen ? 'Undock Player' : 'Dock Player'}</span>
+                  </button>
+
+                  {/* 10s Rewind & Forward */}
+                  <button
+                    onClick={() => skipTime(-10)}
+                    className="p-3.5 rounded-full liquid-glass-button text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-neon-green cursor-pointer"
+                    title="Rewind 10 seconds"
+                    aria-label="Rewind 10 seconds"
+                  >
+                    <RotateCcw size={16} />
+                  </button>
+
+                  <button
+                    onClick={() => skipTime(10)}
+                    className="p-3.5 rounded-full liquid-glass-button text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-neon-green cursor-pointer"
+                    title="Forward 10 seconds"
+                    aria-label="Forward 10 seconds"
+                  >
+                    <RotateCw size={16} />
                   </button>
 
                   {featuredSermon.audio_file_url && (
@@ -197,7 +264,7 @@ export function Sermons() {
                       download="School of Wealth vol 1 prt11.mp3"
                       target="_blank"
                       rel="noreferrer"
-                      className="liquid-glass-button px-5 py-3.5 rounded-full text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-neon-green flex items-center gap-2 cursor-pointer"
+                      className="liquid-glass-button px-5 py-3.5 rounded-full text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-neon-green flex items-center gap-2 cursor-pointer ml-auto sm:ml-0"
                     >
                       <Download size={15} /> Download MP3
                     </a>
@@ -246,7 +313,7 @@ export function Sermons() {
 
                   <span className="caption-mono !text-[8px] text-slate-500 dark:text-slate-400 mt-4 flex items-center gap-1 font-bold">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping inline-block mr-1" />
-                    HOSTED IN SUPABASE STORAGE
+                    DIGITAL AUDIO ARCHIVE
                   </span>
                 </div>
               </div>
@@ -405,16 +472,31 @@ export function Sermons() {
                         <span className="nav-label !text-[8px] text-slate-600 dark:text-slate-400">{s.speaker}</span>
                       </div>
                       
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          playTrack(s);
-                        }}
-                        className="liquid-glass-button px-3.5 py-1.5 rounded-full nav-label !text-[8px] text-blue-600 dark:text-neon-green hover:underline cursor-pointer flex items-center gap-1.5"
-                      >
-                        {isThisTrackPlaying ? <Pause size={10} fill="currentColor" /> : <Play size={10} fill="currentColor" />}
-                        {isThisTrackPlaying ? 'PAUSE' : 'PLAY AUDIO'}
-                      </button>
+                      <div className="flex items-center gap-1.5">
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            playTrack(s, false);
+                          }}
+                          className="liquid-glass-button px-3 py-1.5 rounded-full nav-label !text-[8px] text-blue-600 dark:text-neon-green hover:underline cursor-pointer flex items-center gap-1.5"
+                          title="Play in background"
+                        >
+                          {isThisTrackPlaying ? <Pause size={10} fill="currentColor" /> : <Play size={10} fill="currentColor" />}
+                          {isThisTrackPlaying ? 'PAUSE' : 'PLAY'}
+                        </button>
+
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            playTrack(s, true);
+                          }}
+                          className="liquid-glass-button p-1.5 rounded-full text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-neon-green cursor-pointer"
+                          title="Dock player to bottom"
+                          aria-label="Dock player to bottom"
+                        >
+                          <Maximize2 size={11} />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </motion.div>
@@ -463,13 +545,6 @@ export function Sermons() {
           </div>
         </div>
       </section>
-
-      {/* Supabase Sync & Setup Modal */}
-      <SupabaseSyncModal 
-        isOpen={isSyncModalOpen}
-        onClose={() => setIsSyncModalOpen(false)}
-        onRefreshData={loadSermons}
-      />
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useRef, useEffect, ReactNode } from 'react';
-import { Sermon } from '../lib/supabase';
+import { Sermon, INITIAL_SERMONS } from '../lib/sermons';
 
 interface AudioContextType {
   currentTrack: Sermon | null;
@@ -10,7 +10,11 @@ interface AudioContextType {
   volume: number;
   isMuted: boolean;
   playbackRate: number;
-  playTrack: (track: Sermon) => void;
+  playbackError: string | null;
+  isDockedPlayerOpen: boolean;
+  setIsDockedPlayerOpen: (open: boolean) => void;
+  toggleDockedPlayer: () => void;
+  playTrack: (track: Sermon, openDocked?: boolean) => void;
   togglePlay: () => void;
   pauseTrack: () => void;
   seek: (time: number) => void;
@@ -19,146 +23,132 @@ interface AudioContextType {
   toggleMute: () => void;
   setPlaybackRate: (rate: number) => void;
   formatTime: (seconds: number) => string;
+  retryPlayback: () => void;
 }
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined);
 
 export function AudioProvider({ children }: { children: ReactNode }) {
-  const [currentTrack, setCurrentTrack] = useState<Sermon | null>(null);
+  const [currentTrack, setCurrentTrack] = useState<Sermon | null>(INITIAL_SERMONS[0]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [volume, setVolumeState] = useState(0.85);
+  const [duration, setDuration] = useState(3320); // 55:20 in seconds initial estimate
+  const [volume, setVolumeState] = useState(0.9);
   const [isMuted, setIsMuted] = useState(false);
   const [playbackRate, setPlaybackRateState] = useState(1);
+  const [playbackError, setPlaybackError] = useState<string | null>(null);
+
+  // The docked player is CLOSED by default on arrival.
+  // The user explicitly chooses whether to dock the player or play in background.
+  const [isDockedPlayerOpen, setIsDockedPlayerOpen] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const isRetryingWithProxy = useRef<boolean>(false);
 
-  // Initialize audio element once
-  useEffect(() => {
-    const audio = new Audio();
-    audio.preload = 'metadata';
-    audioRef.current = audio;
-
-    const handleTimeUpdate = () => {
-      setCurrentTime(audio.currentTime);
-    };
-
-    const handleLoadedMetadata = () => {
-      setDuration(audio.duration || 0);
-      setIsLoading(false);
-    };
-
-    const handleWaiting = () => {
-      setIsLoading(true);
-    };
-
-    const handleCanPlay = () => {
-      setIsLoading(false);
-    };
-
-    const handleEnded = () => {
-      setIsPlaying(false);
-      setCurrentTime(0);
-    };
-
-    const handleError = (e: any) => {
-      console.warn('Audio playback error:', e);
-      setIsLoading(false);
-      setIsPlaying(false);
-    };
-
-    audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-    audio.addEventListener('waiting', handleWaiting);
-    audio.addEventListener('canplay', handleCanPlay);
-    audio.addEventListener('ended', handleEnded);
-    audio.addEventListener('error', handleError);
-
-    return () => {
-      audio.pause();
-      audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      audio.removeEventListener('waiting', handleWaiting);
-      audio.removeEventListener('canplay', handleCanPlay);
-      audio.removeEventListener('ended', handleEnded);
-      audio.removeEventListener('error', handleError);
-    };
-  }, []);
-
-  // Update volume & mute
+  // Sync volume with audio element
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = isMuted ? 0 : volume;
     }
   }, [volume, isMuted]);
 
-  // Update playback rate
+  // Sync playback rate
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.playbackRate = playbackRate;
     }
   }, [playbackRate]);
 
-  const playTrack = (track: Sermon) => {
-    if (!audioRef.current) return;
+  // Initialize track src when first mounting
+  useEffect(() => {
+    if (audioRef.current && currentTrack?.audio_file_url) {
+      if (!audioRef.current.src || audioRef.current.src === window.location.href) {
+        audioRef.current.src = currentTrack.audio_file_url;
+      }
+    }
+  }, [currentTrack]);
+
+  const playTrack = (track: Sermon, openDocked = false) => {
+    const audio = audioRef.current;
+    if (!audio) return;
 
     if (!track.audio_file_url) {
-      console.warn('No audio file URL provided for this sermon');
+      setPlaybackError('No audio URL found for this sermon.');
       return;
     }
 
-    // If same track is already loaded
-    if (currentTrack?.id === track.id && audioRef.current.src === track.audio_file_url) {
+    setPlaybackError(null);
+    isRetryingWithProxy.current = false;
+
+    if (openDocked) {
+      setIsDockedPlayerOpen(true);
+    }
+
+    // If it's already the loaded track
+    if (currentTrack?.id === track.id) {
       if (isPlaying) {
-        audioRef.current.pause();
-        setIsPlaying(false);
+        audio.pause();
       } else {
-        audioRef.current.play().then(() => setIsPlaying(true)).catch(console.error);
+        setIsLoading(true);
+        audio.play().catch(handlePlayError);
       }
       return;
     }
 
-    // Load new track
+    // New track selection
     setCurrentTrack(track);
     setIsLoading(true);
     setCurrentTime(0);
-    audioRef.current.src = track.audio_file_url;
-    audioRef.current.load();
-    
-    audioRef.current
-      .play()
-      .then(() => {
-        setIsPlaying(true);
-        setIsLoading(false);
-      })
-      .catch((err) => {
-        console.warn('Failed to autoplay audio:', err);
-        setIsPlaying(false);
-        setIsLoading(false);
-      });
+
+    audio.src = track.audio_file_url;
+    audio.play().catch(handlePlayError);
+  };
+
+  const handlePlayError = (err: any) => {
+    console.warn('Direct audio play error:', err);
+    if (err?.name === 'AbortError') {
+      setIsLoading(false);
+      return;
+    }
+
+    // Try fallback proxy if direct streaming failed (e.g. CORS or adblock in iframe)
+    if (!isRetryingWithProxy.current && currentTrack?.audio_file_url) {
+      console.log('Attempting playback via /api/audio-proxy fallback...');
+      isRetryingWithProxy.current = true;
+      const proxyUrl = `/api/audio-proxy?url=${encodeURIComponent(currentTrack.audio_file_url)}`;
+      if (audioRef.current) {
+        audioRef.current.src = proxyUrl;
+        audioRef.current.play().catch((proxyErr) => {
+          console.error('Proxy play error:', proxyErr);
+          setIsLoading(false);
+          setIsPlaying(false);
+          setPlaybackError('Unable to stream audio. Please check your network or click download.');
+        });
+        return;
+      }
+    }
+
+    setIsLoading(false);
+    setIsPlaying(false);
+    setPlaybackError('Playback error. Click retry or use the direct download link.');
   };
 
   const togglePlay = () => {
-    if (!audioRef.current || !currentTrack) return;
+    const audio = audioRef.current;
+    if (!audio || !currentTrack) return;
 
     if (isPlaying) {
-      audioRef.current.pause();
-      setIsPlaying(false);
+      audio.pause();
     } else {
-      audioRef.current
-        .play()
-        .then(() => setIsPlaying(true))
-        .catch((err) => {
-          console.warn('Playback resume failed:', err);
-          setIsPlaying(false);
-        });
+      setIsLoading(true);
+      setPlaybackError(null);
+      audio.play().catch(handlePlayError);
     }
   };
 
   const pauseTrack = () => {
-    if (audioRef.current && isPlaying) {
+    if (audioRef.current) {
       audioRef.current.pause();
       setIsPlaying(false);
     }
@@ -196,6 +186,17 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     setPlaybackRateState(rate);
   };
 
+  const toggleDockedPlayer = () => {
+    setIsDockedPlayerOpen(prev => !prev);
+  };
+
+  const retryPlayback = () => {
+    setPlaybackError(null);
+    if (currentTrack) {
+      playTrack(currentTrack);
+    }
+  };
+
   const formatTime = (seconds: number) => {
     if (isNaN(seconds) || seconds < 0) return '0:00';
     const hrs = Math.floor(seconds / 3600);
@@ -219,6 +220,10 @@ export function AudioProvider({ children }: { children: ReactNode }) {
         volume,
         isMuted,
         playbackRate,
+        playbackError,
+        isDockedPlayerOpen,
+        setIsDockedPlayerOpen,
+        toggleDockedPlayer,
         playTrack,
         togglePlay,
         pauseTrack,
@@ -228,8 +233,47 @@ export function AudioProvider({ children }: { children: ReactNode }) {
         toggleMute,
         setPlaybackRate,
         formatTime,
+        retryPlayback,
       }}
     >
+      {/* Real HTML5 Audio Element in DOM */}
+      <audio
+        ref={audioRef}
+        preload="auto"
+        playsInline
+        onTimeUpdate={() => {
+          if (audioRef.current) {
+            setCurrentTime(audioRef.current.currentTime);
+          }
+        }}
+        onDurationChange={() => {
+          if (audioRef.current && audioRef.current.duration && !isNaN(audioRef.current.duration)) {
+            setDuration(audioRef.current.duration);
+          }
+        }}
+        onLoadedMetadata={() => {
+          if (audioRef.current && audioRef.current.duration && !isNaN(audioRef.current.duration)) {
+            setDuration(audioRef.current.duration);
+          }
+          setIsLoading(false);
+        }}
+        onWaiting={() => setIsLoading(true)}
+        onCanPlay={() => setIsLoading(false)}
+        onPlaying={() => {
+          setIsPlaying(true);
+          setIsLoading(false);
+          setPlaybackError(null);
+        }}
+        onPause={() => setIsPlaying(false)}
+        onEnded={() => {
+          setIsPlaying(false);
+          setCurrentTime(0);
+        }}
+        onError={() => {
+          console.warn('Native audio element error');
+          handlePlayError(new Error('Audio stream error'));
+        }}
+      />
       {children}
     </AudioContext.Provider>
   );
