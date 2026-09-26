@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { BookOpen, Flame, Sparkles, Music, TrendingUp, Zap } from 'lucide-react';
+import { BookOpen, Flame, Sparkles, Music, TrendingUp, Zap, Facebook, ExternalLink, ShieldCheck, HeartHandshake } from 'lucide-react';
 
 export function About() {
   const values = [
@@ -138,6 +138,74 @@ export function About() {
                 </div>
               </motion.div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Leadership / Head Pastor Section */}
+      <section className="py-16 sm:py-24 md:py-32 border-t border-slate-300/40 dark:border-slate-800/60">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="mb-12 sm:mb-16">
+            <h2 className="text-3xl sm:text-5xl md:text-7xl font-black text-slate-900 dark:text-white tracking-tight leading-none mb-4">
+              OUR <span className="text-slate-400 dark:text-slate-600 italic">LEADERSHIP.</span>
+            </h2>
+            <p className="text-base sm:text-xl text-slate-600 dark:text-slate-400 font-light max-w-xl">
+              Spiritual oversight dedicated to shepherding, discipleship, and expanding Kingdom impact.
+            </p>
+          </div>
+
+          <div className="liquid-glass rounded-3xl sm:rounded-[2.5rem] p-6 sm:p-10 md:p-14 liquid-sheen">
+            <div className="grid md:grid-cols-12 gap-8 md:gap-12 items-center">
+              <div className="md:col-span-5 relative">
+                <div className="liquid-inset p-3 rounded-2xl sm:rounded-3xl">
+                  <img
+                    src="https://images.unsplash.com/photo-1548372290-8d01b6c8e78c?auto=format&fit=crop&w=800&q=80"
+                    alt="Head Pastor"
+                    className="w-full aspect-[4/5] object-cover rounded-xl sm:rounded-2xl brightness-95 grayscale hover:grayscale-0 transition-all duration-500"
+                  />
+                </div>
+                <div className="absolute -bottom-3 -right-3 sm:-bottom-4 sm:-right-4 liquid-glass-accent p-3 sm:p-4 rounded-2xl text-slate-950 shadow-xl flex items-center gap-2">
+                  <ShieldCheck size={20} strokeWidth={2.5} />
+                  <span className="text-[10px] font-black tracking-widest uppercase">Head Pastor</span>
+                </div>
+              </div>
+
+              <div className="md:col-span-7 space-y-6">
+                <div>
+                  <span className="text-xs font-mono font-bold tracking-widest text-blue-600 dark:text-neon-green uppercase mb-2 block">
+                    Pastoral Oversight
+                  </span>
+                  <h3 className="text-2xl sm:text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
+                    HEAD PASTOR
+                  </h3>
+                  <p className="text-sm font-mono text-slate-500 dark:text-slate-400 mt-1">
+                    Abrahamic Faith Christian Assembly
+                  </p>
+                </div>
+
+                <p className="text-sm sm:text-base md:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-light">
+                  Guiding our congregation with apostolic wisdom, persistent prayer, and deep pastoral care. Committed to teaching sound biblical doctrine and raising believers anchored in unwavering faith and purpose.
+                </p>
+
+                <div className="pt-4 flex flex-wrap items-center gap-4">
+                  <a
+                    href="https://facebook.com/benwuk.eris.3"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="liquid-glass-accent text-slate-950 px-6 sm:px-8 py-3.5 sm:py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-2.5 hover:scale-[1.02] transition-transform cursor-pointer shadow-lg"
+                  >
+                    <Facebook size={16} strokeWidth={2.5} />
+                    <span>CONNECT ON FACEBOOK</span>
+                    <ExternalLink size={14} />
+                  </a>
+
+                  <div className="flex items-center gap-2 px-4 py-3 rounded-2xl liquid-inset text-xs font-mono text-slate-600 dark:text-slate-400">
+                    <HeartHandshake size={16} className="text-blue-600 dark:text-neon-green" />
+                    <span>Pastoral Counseling & Ministry</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>

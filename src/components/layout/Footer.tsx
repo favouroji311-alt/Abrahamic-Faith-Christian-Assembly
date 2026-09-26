@@ -30,16 +30,30 @@ export function Footer() {
               </h3>
             </div>
             <div className="flex gap-3 sm:gap-4">
-              {[Facebook, Twitter, Instagram].map((Icon, i) => (
-                <a
-                  key={i}
-                  href="#"
-                  className="w-10 h-10 liquid-glass-button rounded-full flex items-center justify-center text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-neon-green transition-colors cursor-pointer"
-                  aria-label="Social Link"
-                >
-                  <Icon size={18} strokeWidth={1.75} />
-                </a>
-              ))}
+              <a
+                href="https://facebook.com/benwuk.eris.3"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-10 h-10 liquid-glass-button rounded-full flex items-center justify-center text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-neon-green transition-colors cursor-pointer"
+                aria-label="Head Pastor Facebook"
+                title="Head Pastor on Facebook"
+              >
+                <Facebook size={18} strokeWidth={1.75} />
+              </a>
+              <a
+                href="#"
+                className="w-10 h-10 liquid-glass-button rounded-full flex items-center justify-center text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-neon-green transition-colors cursor-pointer"
+                aria-label="Twitter"
+              >
+                <Twitter size={18} strokeWidth={1.75} />
+              </a>
+              <a
+                href="#"
+                className="w-10 h-10 liquid-glass-button rounded-full flex items-center justify-center text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-neon-green transition-colors cursor-pointer"
+                aria-label="Instagram"
+              >
+                <Instagram size={18} strokeWidth={1.75} />
+              </a>
             </div>
           </div>
 
@@ -68,6 +82,17 @@ export function Footer() {
                 <span className="caption-mono text-[8px] opacity-70">Voice</span>
                 <span className="text-xs font-mono text-slate-700 dark:text-slate-300 mt-1">+234 703 227 6862</span>
                 <span className="text-xs font-mono text-slate-700 dark:text-slate-300 mt-1">+234 814 938 4363</span>
+              </li>
+              <li className="flex flex-col pt-1">
+                <span className="caption-mono text-[8px] opacity-70">Head Pastor</span>
+                <a 
+                  href="https://facebook.com/benwuk.eris.3"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-mono text-blue-600 dark:text-neon-green hover:underline mt-1 flex items-center gap-1.5"
+                >
+                  <Facebook size={12} /> Connect on Facebook
+                </a>
               </li>
             </ul>
           </div>
