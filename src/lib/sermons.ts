@@ -36,7 +36,7 @@ function getClient(): SupabaseClient | null {
   return clientInstance;
 }
 
-// Pre-seeded sermon catalog featuring 'School of Wealth Vol 1 Part 11'
+// Sermon catalog featuring the real sermon 'School of Wealth Vol 1 Part 11'
 export const INITIAL_SERMONS: Sermon[] = [
   {
     id: 'school-of-wealth-vol-1-prt11',
@@ -47,61 +47,6 @@ export const INITIAL_SERMONS: Sermon[] = [
     description: 'School of Wealth Volume 1 Part 11 - Biblical principles for financial dominion, supernatural provision, and wealth creation for Kingdom impact.',
     audio_file_url: SCHOOL_OF_WEALTH_AUDIO_URL,
     duration: '55:20',
-  },
-  {
-    id: 'faith-that-moves-mountains',
-    title: 'Faith That Moves Mountains',
-    speaker: 'Rev. Abraham',
-    date: 'April 20, 2026',
-    tag: 'Faith',
-    description: 'Discover how to activate the mustard-seed faith that overcomes every obstacle in your path.',
-    audio_file_url: SCHOOL_OF_WEALTH_AUDIO_URL,
-    duration: '42:15',
-  },
-  {
-    id: 'the-power-of-prayer',
-    title: 'The Power of Prayer',
-    speaker: 'Pst. Sarah',
-    date: 'April 13, 2026',
-    tag: 'Prayer',
-    description: 'Understanding the spiritual mechanics of dynamic communication with our Heavenly Father.',
-    duration: '38:40',
-  },
-  {
-    id: 'walking-in-love',
-    title: 'Walking in Love',
-    speaker: 'Rev. Abraham',
-    date: 'April 06, 2026',
-    tag: 'Love',
-    description: 'A deep dive into the true meaning of Agape love and how it transforms our relationships.',
-    duration: '45:10',
-  },
-  {
-    id: 'living-a-life-of-purpose',
-    title: 'Living a Life of Purpose',
-    speaker: 'Pst. David',
-    date: 'March 30, 2026',
-    tag: 'Purpose',
-    description: 'Uncovering the divine assignment God has placed on your life for this generation.',
-    duration: '50:00',
-  },
-  {
-    id: 'overcoming-fear-with-faith',
-    title: 'Overcoming Fear with Faith',
-    speaker: 'Rev. Abraham',
-    date: 'March 23, 2026',
-    tag: 'Faith',
-    description: 'Strategies for standing firm when anxiety and fear try to cloud your vision.',
-    duration: '47:20',
-  },
-  {
-    id: 'the-joy-of-salvation',
-    title: 'The Joy of Salvation',
-    speaker: 'Pst. Sarah',
-    date: 'March 16, 2026',
-    tag: 'Salvation',
-    description: 'Reclaiming the wonder and excitement of our first encounter with the Grace of God.',
-    duration: '36:50',
   }
 ];
 

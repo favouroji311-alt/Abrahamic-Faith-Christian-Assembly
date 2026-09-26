@@ -73,8 +73,9 @@ export function Sermons() {
 
   const isFeaturedPlaying = currentTrack?.id === featuredSermon.id && isPlaying;
 
-  // Filter sermons
-  const topics = ['All Topics', 'Wealth & Finances', 'Faith', 'Prayer', 'Love', 'Purpose', 'Salvation'];
+  // Filter sermons dynamically based on actual sermon topics
+  const dynamicTags = Array.from(new Set(sermons.map(s => s.tag).filter(Boolean)));
+  const topics = ['All Topics', ...dynamicTags];
 
   const filteredSermons = sermons.filter(s => {
     const matchesTopic = selectedTopic === 'All Topics' || s.tag.toLowerCase().includes(selectedTopic.toLowerCase());
@@ -479,7 +480,7 @@ export function Sermons() {
                             playTrack(s, false);
                           }}
                           className="liquid-glass-button px-3 py-1.5 rounded-full nav-label !text-[8px] text-blue-600 dark:text-neon-green hover:underline cursor-pointer flex items-center gap-1.5"
-                          title="Play in background"
+                          title="Play"
                         >
                           {isThisTrackPlaying ? <Pause size={10} fill="currentColor" /> : <Play size={10} fill="currentColor" />}
                           {isThisTrackPlaying ? 'PAUSE' : 'PLAY'}
