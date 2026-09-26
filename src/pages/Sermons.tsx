@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type MouseEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Play, 
@@ -22,7 +22,8 @@ import { useAudio } from '../context/AudioContext';
 import { 
   fetchSermons, 
   Sermon, 
-  INITIAL_SERMONS 
+  INITIAL_SERMONS,
+  requestGeneratedDescription
 } from '../lib/sermons';
 
 export function Sermons() {
@@ -45,6 +46,7 @@ export function Sermons() {
   } = useAudio();
   const [sermons, setSermons] = useState<Sermon[]>(INITIAL_SERMONS);
   const [isLoading, setIsLoading] = useState(true);
+  const [generatingDescId, setGeneratingDescId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTopic, setSelectedTopic] = useState('All Topics');
 
@@ -53,7 +55,17 @@ export function Sermons() {
     setIsLoading(true);
     try {
       const result = await fetchSermons();
-      setSermons(result.sermons);
+      // Auto-ensure every sermon has a rich description generated from title
+      const enriched = await Promise.all(
+        result.sermons.map(async (s) => {
+          if (!s.description || s.description.trim().length === 0) {
+            const desc = await requestGeneratedDescription(s.title, s.speaker, s.tag);
+            return desc ? { ...s, description: desc } : s;
+          }
+          return s;
+        })
+      );
+      setSermons(enriched);
     } catch (err) {
       console.warn('Failed to fetch sermons:', err);
     } finally {
@@ -61,12 +73,26 @@ export function Sermons() {
     }
   };
 
+  const handleRegenerateDescription = async (sermon: Sermon, e?: MouseEvent) => {
+    if (e) e.stopPropagation();
+    setGeneratingDescId(sermon.id);
+    try {
+      const newDesc = await requestGeneratedDescription(sermon.title, sermon.speaker, sermon.tag, true);
+      if (newDesc) {
+        setSermons(prev => prev.map(s => s.id === sermon.id ? { ...s, description: newDesc } : s));
+      }
+    } finally {
+      setGeneratingDescId(null);
+    }
+  };
+
   useEffect(() => {
     loadSermons();
   }, []);
 
-  // Find the primary featured sermon (School of Wealth Vol 1 Part 11)
+  // Find the primary featured sermon
   const featuredSermon = 
+    sermons.find(s => s.title.toLowerCase().includes('ministries of the holy spirit')) ||
     sermons.find(s => s.title.toLowerCase().includes('school of wealth')) || 
     sermons[0] || 
     INITIAL_SERMONS[0];
@@ -111,6 +137,18 @@ export function Sermons() {
                 Stream spirit-filled audio messages and sermons directly from our media vault.
               </p>
             </div>
+
+            <div className="flex items-center gap-3">
+              <button
+                onClick={loadSermons}
+                disabled={isLoading}
+                className="liquid-glass-button px-4 py-2.5 rounded-full text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-neon-green flex items-center gap-2 cursor-pointer transition-all disabled:opacity-50"
+                title="Refresh sermon catalog"
+              >
+                <RotateCw size={14} className={isLoading ? "animate-spin text-blue-600 dark:text-neon-green" : ""} />
+                <span>{isLoading ? 'Updating...' : 'Sync Catalog'}</span>
+              </button>
+            </div>
           </div>
 
           {/* FEATURED SERMON HERO PLAYER: School of Wealth Vol 1 Part 11 */}
@@ -142,9 +180,20 @@ export function Sermons() {
                   {featuredSermon.title}
                 </h2>
 
-                <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed font-light">
-                  {featuredSermon.description}
-                </p>
+                <div className="space-y-1.5">
+                  <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed font-light">
+                    {featuredSermon.description}
+                  </p>
+                  <button
+                    onClick={(e) => handleRegenerateDescription(featuredSermon, e)}
+                    disabled={generatingDescId === featuredSermon.id}
+                    className="inline-flex items-center gap-1.5 text-[10px] font-mono text-blue-600 dark:text-neon-green hover:underline cursor-pointer opacity-75 hover:opacity-100 transition-opacity"
+                    title="Generate description based on title using Gemini AI"
+                  >
+                    <Sparkles size={11} className={generatingDescId === featuredSermon.id ? "animate-spin" : ""} />
+                    {generatingDescId === featuredSermon.id ? 'Generating summary...' : 'Generate description'}
+                  </button>
+                </div>
 
                 <div className="flex items-center gap-3 pt-2">
                   <div className="w-8 h-8 rounded-full liquid-inset flex items-center justify-center text-blue-600 dark:text-neon-green">

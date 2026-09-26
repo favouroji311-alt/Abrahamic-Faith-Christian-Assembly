@@ -36,60 +36,106 @@ function getClient(): SupabaseClient | null {
   return clientInstance;
 }
 
-// Sermon catalog featuring the real sermon 'School of Wealth Vol 1 Part 11'
+// Sermon catalog pre-seeded with latest records from the database
 export const INITIAL_SERMONS: Sermon[] = [
   {
-    id: 'school-of-wealth-vol-1-prt11',
-    title: 'School of Wealth Vol 1 Part 11',
-    speaker: 'Pastor Benwuk',
+    id: '6b0efd87-37d2-4e18-95e1-1055caa72eea',
+    title: 'Ministries Of The Holy Spirit',
+    speaker: 'Pst. Benwuk Erigbali',
+    date: 'September 2026',
+    tag: 'Holy Spirit & Power',
+    description: 'A transformative teaching uncovering biblical principles for spiritual breakthrough, kingdom purpose, and supernatural provision through the Holy Spirit.',
+    audio_file_url: 'https://lduxhzivaczcwxephfwx.supabase.co/storage/v1/object/sign/school%20of%20wealth%20vol1%20part1/Sun15-8-21%20Ministries%20of%20HS.mp3?token=eyJraWQiOiI5NTZiODZjMS05ZTA3LTQ5ZDktYTUyYS1iNjE5MGVjYTg0MWYiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJzY2hvb2wgb2Ygd2VhbHRoIHZvbDEgcGFydDEvU3VuMTUtOC0yMSBNaW5pc3RyaWVzIG9mIEhTLm1wMyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3OTA0NTk2MjksImV4cCI6MjEwNTgxOTYyOX0._o3MZ-YxaExbHce3R2XXlwonRInJeBwFwPf_2WwS_Qo4lqaOjs_riNwusKbDTCXBXgBlxPCUuJV3RTloFZATmQ',
+    duration: '40 mins',
+  },
+  {
+    id: '45c2caf4-ec0c-47c4-879b-30e02788af62',
+    title: 'School Of Wealth Vol1 Prt1',
+    speaker: 'Pst. Benwuk Erigbali',
     date: 'September 2026',
     tag: 'Wealth & Finances',
-    description: 'School of Wealth Volume 1 Part 11 - Biblical principles for financial dominion, supernatural provision, and wealth creation for Kingdom impact.',
+    description: 'School of Wealth Volume 1 Part 1 - Biblical principles for financial dominion, supernatural provision, and wealth creation for Kingdom impact.',
     audio_file_url: SCHOOL_OF_WEALTH_AUDIO_URL,
-    duration: '55:20',
+    duration: '45 mins',
   }
 ];
 
 /**
- * Fetches sermons catalog.
+ * Fetches sermons catalog from server API, Supabase, or initial fallback.
  */
 export async function fetchSermons(): Promise<{ sermons: Sermon[] }> {
-  const client = getClient();
-  if (!client) {
-    return { sermons: INITIAL_SERMONS };
-  }
-
+  // 1. First try server endpoint which can query Supabase via backend credentials or local database
   try {
-    const { data, error } = await client
-      .from('sermons')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error || !data || data.length === 0) {
-      return { sermons: INITIAL_SERMONS };
+    const res = await fetch('/api/sermons');
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data?.sermons) && data.sermons.length > 0) {
+        return { sermons: data.sermons };
+      }
     }
-
-    const mapped: Sermon[] = data.map((row: any) => ({
-      id: String(row.id || row.sermon_id || Math.random().toString(36).substring(7)),
-      title: row.title || row.sermon_title || 'Untitled Sermon',
-      speaker: row.speaker || row.preacher || row.pastor || 'Pastor Benwuk',
-      date: row.date || row.sermon_date || new Date(row.created_at || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      tag: row.tag || row.topic || row.series || 'General',
-      description: row.description || row.desc || row.summary || '',
-      audio_file_url: row.audio_file_url || row.audio_url || row.audio || row.file_url || row.url || '',
-      duration: row.duration || 'Audio',
-      created_at: row.created_at
-    }));
-
-    const hasSchoolOfWealth = mapped.some(
-      s => s.title.toLowerCase().includes('school of wealth') || 
-           s.audio_file_url?.includes('School%20of%20Wealth%20vol%201%20prt11')
-    );
-
-    const merged = hasSchoolOfWealth ? mapped : [INITIAL_SERMONS[0], ...mapped];
-
-    return { sermons: merged };
-  } catch {
-    return { sermons: INITIAL_SERMONS };
+  } catch (apiErr) {
+    console.warn('Could not fetch sermons from /api/sermons:', apiErr);
   }
+
+  // 2. Direct Supabase client fallback
+  const client = getClient();
+  if (client) {
+    try {
+      const { data, error } = await client
+        .from('sermons')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (!error && data && data.length > 0) {
+        const mapped: Sermon[] = data.map((row: any) => ({
+          id: String(row.id || row.sermon_id || Math.random().toString(36).substring(7)),
+          title: row.title || row.sermon_title || 'Untitled Sermon',
+          speaker: row.speaker || row.preacher || row.pastor || 'Pastor Benwuk',
+          date: row.date || row.sermon_date || new Date(row.created_at || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+          tag: row.tag || row.topic || row.series || 'General',
+          description: row.description || row.desc || row.summary || '',
+          audio_file_url: row.audio_file_url || row.audio_url || row.audio || row.file_url || row.url || '',
+          duration: row.duration || 'Audio',
+          created_at: row.created_at
+        }));
+
+        const hasSchoolOfWealth = mapped.some(
+          s => s.title.toLowerCase().includes('school of wealth') || 
+               s.audio_file_url?.includes('School%20of%20Wealth%20vol%201%20prt11')
+        );
+
+        const merged = hasSchoolOfWealth ? mapped : [INITIAL_SERMONS[0], ...mapped];
+        return { sermons: merged };
+      }
+    } catch {
+      // Fall through to initial fallback
+    }
+  }
+
+  return { sermons: INITIAL_SERMONS };
+}
+
+/**
+ * Requests an AI-generated description for a sermon title via the server endpoint.
+ */
+export async function requestGeneratedDescription(
+  title: string, 
+  speaker?: string, 
+  tag?: string,
+  force: boolean = false
+): Promise<string | null> {
+  try {
+    const res = await fetch('/api/sermons/generate-description', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, speaker, tag, force })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      return data.description || null;
+    }
+  } catch (err) {
+    console.warn('Failed to generate description:', err);
+  }
+  return null;
 }

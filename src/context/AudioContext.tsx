@@ -86,12 +86,12 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     }
 
     // If it's already the loaded track
-    if (currentTrack?.id === track.id) {
+    if (currentTrack?.id === track.id && audio.src && audio.src !== window.location.href) {
       if (isPlaying) {
         audio.pause();
       } else {
         setIsLoading(true);
-        audio.play().catch(handlePlayError);
+        audio.play().catch((err) => handlePlayError(err, track));
       }
       return;
     }
@@ -102,28 +102,35 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     setCurrentTime(0);
 
     audio.src = track.audio_file_url;
-    audio.play().catch(handlePlayError);
+    audio.load();
+    audio.play().catch((err) => handlePlayError(err, track));
   };
 
-  const handlePlayError = (err: any) => {
-    console.warn('Direct audio play error:', err);
+  const handlePlayError = (err: any, trackToUse?: Sermon | null) => {
+    const activeTrack = trackToUse || currentTrack;
     if (err?.name === 'AbortError') {
       setIsLoading(false);
       return;
     }
 
+    console.warn('Direct audio play error:', err?.message || err);
+
     // Try fallback proxy if direct streaming failed (e.g. CORS or adblock in iframe)
-    if (!isRetryingWithProxy.current && currentTrack?.audio_file_url) {
-      console.log('Attempting playback via /api/audio-proxy fallback...');
+    if (!isRetryingWithProxy.current && activeTrack?.audio_file_url) {
       isRetryingWithProxy.current = true;
-      const proxyUrl = `/api/audio-proxy?url=${encodeURIComponent(currentTrack.audio_file_url)}`;
+      const proxyUrl = `/api/audio-proxy/sermon.mp3?url=${encodeURIComponent(activeTrack.audio_file_url)}`;
       if (audioRef.current) {
         audioRef.current.src = proxyUrl;
+        audioRef.current.load();
         audioRef.current.play().catch((proxyErr) => {
-          console.error('Proxy play error:', proxyErr);
+          if (proxyErr?.name === 'AbortError') {
+            setIsLoading(false);
+            return;
+          }
+          console.warn('Proxy fallback play error:', proxyErr?.message || proxyErr);
           setIsLoading(false);
           setIsPlaying(false);
-          setPlaybackError('Unable to stream audio. Please check your network or click download.');
+          setPlaybackError('Unable to stream audio. Please use the direct download link or click retry.');
         });
         return;
       }
@@ -143,7 +150,13 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     } else {
       setIsLoading(true);
       setPlaybackError(null);
-      audio.play().catch(handlePlayError);
+      if (!audio.src || audio.src === window.location.href) {
+        if (currentTrack.audio_file_url) {
+          audio.src = currentTrack.audio_file_url;
+          audio.load();
+        }
+      }
+      audio.play().catch((err) => handlePlayError(err, currentTrack));
     }
   };
 
@@ -239,7 +252,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       {/* Real HTML5 Audio Element in DOM */}
       <audio
         ref={audioRef}
-        preload="auto"
+        preload="none"
         playsInline
         onTimeUpdate={() => {
           if (audioRef.current) {
@@ -270,8 +283,11 @@ export function AudioProvider({ children }: { children: ReactNode }) {
           setCurrentTime(0);
         }}
         onError={() => {
-          console.warn('Native audio element error');
-          handlePlayError(new Error('Audio stream error'));
+          // Only trigger error fallback if the player was actively trying to load or play
+          if (isLoading || isPlaying) {
+            console.warn('Native audio element error during active playback');
+            handlePlayError(new Error('Audio stream error'), currentTrack);
+          }
         }}
       />
       {children}
