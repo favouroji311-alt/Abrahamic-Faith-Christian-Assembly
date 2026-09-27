@@ -2,6 +2,7 @@ import { motion } from 'motion/react';
 import { ArrowRight, Calendar, Users, Music, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { UpcomingEvents } from '../components/UpcomingEvents';
+import { SEO } from '../components/common/SEO';
 import type { MessageType } from '../components/ConnectModal';
 
 interface HomeProps {
@@ -11,6 +12,11 @@ interface HomeProps {
 export function Home({ onOpenConnect }: HomeProps) {
   return (
     <div className="relative overflow-hidden">
+      <SEO 
+        title="AFCA – Abrahamic Faith Christian Assembly | Authentic Faith"
+        description="Experience authentic worship, transformative sermons, and vibrant community at Abrahamic Faith Christian Assembly (AFCA). Join our worship family today!"
+        url="/"
+      />
       {/* Hero Section */}
       <section className="relative min-h-[100dvh] pt-28 sm:pt-36 pb-12 sm:pb-20 flex items-end overflow-hidden">
         <div className="absolute inset-0 z-0">

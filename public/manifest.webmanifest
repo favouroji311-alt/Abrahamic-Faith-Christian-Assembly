@@ -1,0 +1,19 @@
+{
+  "name": "Abrahamic Faith Christian Assembly",
+  "short_name": "AFCA",
+  "description": "Authentic worship, transformative sermons, and active community faith at Abrahamic Faith Christian Assembly.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
+  "categories": ["lifestyle", "religion", "community"],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

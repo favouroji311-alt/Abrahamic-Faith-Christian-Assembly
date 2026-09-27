@@ -340,6 +340,77 @@ app.all(['/api/audio-proxy', '/api/audio-proxy/:filename'], async (req, res) => 
   }
 });
 
+// Dedicated audio download endpoint that forces attachment Content-Disposition
+app.all('/api/download', async (req, res) => {
+  const fileUrl = (req.query.url as string) || (req.body?.url as string);
+  let rawFilename = (req.query.filename as string) || (req.body?.filename as string) || 'sermon.mp3';
+
+  if (!fileUrl) {
+    return res.status(400).send('Missing audio url parameter');
+  }
+
+  // Handle CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept');
+  res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition, Content-Length');
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+
+  // Ensure clean filename ending with .mp3
+  let cleanFilename = rawFilename.trim().replace(/[/\\?%*:|"<>]/g, '_');
+  if (!cleanFilename.toLowerCase().endsWith('.mp3')) {
+    cleanFilename += '.mp3';
+  }
+
+  try {
+    const isHead = req.method === 'HEAD';
+    const upstreamRes = await fetch(fileUrl, {
+      method: isHead ? 'HEAD' : 'GET',
+    });
+
+    if (!upstreamRes.ok) {
+      return res.status(upstreamRes.status).send(`Failed fetching audio file: ${upstreamRes.statusText}`);
+    }
+
+    res.status(200);
+    res.setHeader('Content-Type', 'audio/mpeg');
+    // Set attachment header with both ASCII fallback and UTF-8 encoded filename
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${cleanFilename.replace(/"/g, '')}"; filename*=UTF-8''${encodeURIComponent(cleanFilename)}`
+    );
+
+    const contentLength = upstreamRes.headers.get('content-length');
+    if (contentLength) {
+      res.setHeader('Content-Length', contentLength);
+    }
+
+    if (isHead || !upstreamRes.body) {
+      return res.end();
+    }
+
+    const nodeStream = Readable.fromWeb(upstreamRes.body as any);
+
+    req.on('close', () => {
+      nodeStream.destroy();
+    });
+
+    nodeStream.on('error', (err) => {
+      console.warn('Download stream error:', err.message);
+    });
+
+    nodeStream.pipe(res);
+  } catch (err: any) {
+    console.error('Audio download error:', err?.message || err);
+    if (!res.headersSent) {
+      res.status(500).send('Download error');
+    }
+  }
+});
+
 // Sermons API: fetches from Supabase if key configured, otherwise serves local JSON data
 const DATA_FILE = path.join(process.cwd(), 'src', 'data', 'sermons.json');
 const DEFAULT_SUPABASE_URL = 'https://lduxhzivaczcwxephfwx.supabase.co';

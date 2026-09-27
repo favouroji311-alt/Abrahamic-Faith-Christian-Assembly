@@ -1,8 +1,9 @@
 import { motion } from 'motion/react';
 import { BookOpen, Flame, Sparkles, Music, TrendingUp, Zap, Facebook, ExternalLink, ShieldCheck, HeartHandshake } from 'lucide-react';
+import { SEO } from '../components/common/SEO';
 
 export function About() {
-  const values = [
+  const values = [ 
     { 
       number: '01', 
       title: 'Passion for the Word', 
@@ -43,6 +44,11 @@ export function About() {
 
   return (
     <div className="pt-20 sm:pt-24 min-h-screen overflow-hidden">
+      <SEO 
+        title="About Us | Abrahamic Faith Christian Assembly"
+        description="Discover the heritage, beliefs, mission, and pastoral leadership of Abrahamic Faith Christian Assembly. Walking together in vibrant, active apostolic faith."
+        url="/about"
+      />
       {/* Header */}
       <section className="py-16 sm:py-24 md:py-28 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">

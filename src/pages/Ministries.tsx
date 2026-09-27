@@ -1,5 +1,6 @@
 import { motion } from 'motion/react';
 import { Music, Heart, Clock, ArrowRight } from 'lucide-react';
+import { SEO } from '../components/common/SEO';
 import type { MessageType } from '../components/ConnectModal';
 
 interface MinistriesProps {
@@ -40,6 +41,11 @@ export function Ministries({ onOpenConnect }: MinistriesProps) {
 
   return (
     <div className="pt-20 sm:pt-24 min-h-screen overflow-hidden">
+      <SEO 
+        title="Ministries & Community | Abrahamic Faith Christian Assembly"
+        description="Explore active ministries at AFCA — Worship & Art, Women of Grace, Men's Brotherhood, Youth, and Outreach teams walking in apostolic faith."
+        url="/ministries"
+      />
       <section className="py-16 sm:py-24 md:py-28">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <motion.h1 

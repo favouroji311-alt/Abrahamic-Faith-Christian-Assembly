@@ -16,9 +16,12 @@ import {
   Loader2,
   Headphones,
   Maximize2,
-  Minimize2
+  Minimize2,
+  Check
 } from 'lucide-react';
 import { useAudio } from '../context/AudioContext';
+import { SEO } from '../components/common/SEO';
+import { downloadAudioFile } from '../lib/download';
 import { 
   fetchSermons, 
   Sermon, 
@@ -49,6 +52,33 @@ export function Sermons() {
   const [generatingDescId, setGeneratingDescId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTopic, setSelectedTopic] = useState('All Topics');
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [downloadProgress, setDownloadProgress] = useState<number>(0);
+  const [downloadSuccessId, setDownloadSuccessId] = useState<string | null>(null);
+
+  const handleDownload = async (sermon: Sermon, e?: MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (!sermon.audio_file_url) return;
+
+    setDownloadingId(sermon.id);
+    setDownloadProgress(0);
+
+    try {
+      const cleanName = `${sermon.title}.mp3`;
+      await downloadAudioFile(sermon.audio_file_url, cleanName, (progress) => {
+        setDownloadProgress(progress.percent);
+      });
+      setDownloadSuccessId(sermon.id);
+      setTimeout(() => {
+        setDownloadSuccessId(null);
+      }, 3500);
+    } catch (err) {
+      console.error('Download error:', err);
+    } finally {
+      setDownloadingId(null);
+      setDownloadProgress(0);
+    }
+  };
 
   // Load sermons on mount
   const loadSermons = async () => {
@@ -115,6 +145,11 @@ export function Sermons() {
 
   return (
     <div className="pt-20 sm:pt-24 min-h-screen overflow-hidden pb-32">
+      <SEO 
+        title="Sermons & Audio Teachings | Abrahamic Faith Christian Assembly"
+        description="Listen to transformative Bible teachings, audio sermons, and faith-building series in the AFCA Media Vault. Stream live and archived messages."
+        url="/sermons"
+      />
       {/* Header Section */}
       <section className="py-12 sm:py-20 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
@@ -309,15 +344,29 @@ export function Sermons() {
                   </button>
 
                   {featuredSermon.audio_file_url && (
-                    <a
-                      href={featuredSermon.audio_file_url}
-                      download="School of Wealth vol 1 prt11.mp3"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="liquid-glass-button px-5 py-3.5 rounded-full text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-neon-green flex items-center gap-2 cursor-pointer ml-auto sm:ml-0"
+                    <button
+                      onClick={() => handleDownload(featuredSermon)}
+                      disabled={downloadingId === featuredSermon.id}
+                      className="liquid-glass-button px-5 py-3.5 rounded-full text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-neon-green flex items-center gap-2 cursor-pointer ml-auto sm:ml-0 transition-all disabled:opacity-75"
+                      title="Download MP3 to device"
                     >
-                      <Download size={15} /> Download MP3
-                    </a>
+                      {downloadingId === featuredSermon.id ? (
+                        <>
+                          <Loader2 size={15} className="animate-spin text-blue-600 dark:text-neon-green" />
+                          <span>{downloadProgress > 0 ? `Downloading ${downloadProgress}%` : 'Preparing MP3...'}</span>
+                        </>
+                      ) : downloadSuccessId === featuredSermon.id ? (
+                        <>
+                          <Check size={15} className="text-emerald-500" />
+                          <span className="text-emerald-500">Downloaded!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Download size={15} />
+                          <span>Download MP3</span>
+                        </>
+                      )}
+                    </button>
                   )}
                 </div>
               </div>
@@ -546,6 +595,27 @@ export function Sermons() {
                         >
                           <Maximize2 size={11} />
                         </button>
+
+                        {s.audio_file_url && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDownload(s, e);
+                            }}
+                            disabled={downloadingId === s.id}
+                            className="liquid-glass-button p-1.5 rounded-full text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-neon-green cursor-pointer disabled:opacity-50"
+                            title={`Download ${s.title} MP3`}
+                            aria-label={`Download ${s.title} MP3`}
+                          >
+                            {downloadingId === s.id ? (
+                              <Loader2 size={11} className="animate-spin text-blue-600 dark:text-neon-green" />
+                            ) : downloadSuccessId === s.id ? (
+                              <Check size={11} className="text-emerald-500" />
+                            ) : (
+                              <Download size={11} />
+                            )}
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>

@@ -19,6 +19,7 @@ import {
   Headphones
 } from 'lucide-react';
 import { useAudio } from '../context/AudioContext';
+import { downloadAudioFile } from '../lib/download';
 
 export function AudioPlayer() {
   const {
@@ -46,7 +47,29 @@ export function AudioPlayer() {
 
   const [isCopied, setIsCopied] = useState(false);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadPercent, setDownloadPercent] = useState(0);
+  const [isDownloaded, setIsDownloaded] = useState(false);
   const progressBarRef = useRef<HTMLDivElement | null>(null);
+
+  const handleDownload = async () => {
+    if (!currentTrack?.audio_file_url) return;
+    setIsDownloading(true);
+    setDownloadPercent(0);
+    try {
+      const filename = `${currentTrack.title}.mp3`;
+      await downloadAudioFile(currentTrack.audio_file_url, filename, (prog) => {
+        setDownloadPercent(prog.percent);
+      });
+      setIsDownloaded(true);
+      setTimeout(() => setIsDownloaded(false), 3000);
+    } catch (err) {
+      console.error('AudioPlayer download error:', err);
+    } finally {
+      setIsDownloading(false);
+      setDownloadPercent(0);
+    }
+  };
 
   if (!currentTrack) return null;
 
@@ -211,17 +234,21 @@ export function AudioPlayer() {
 
                   {/* Direct Download */}
                   {currentTrack.audio_file_url && (
-                    <a
-                      href={currentTrack.audio_file_url}
-                      download={`${currentTrack.title}.mp3`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="p-1.5 sm:p-2 rounded-full liquid-glass-button text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-neon-green cursor-pointer"
-                      title="Download MP3"
+                    <button
+                      onClick={handleDownload}
+                      disabled={isDownloading}
+                      className="p-1.5 sm:p-2 rounded-full liquid-glass-button text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-neon-green cursor-pointer disabled:opacity-75 transition-all"
+                      title={isDownloading ? `Downloading ${downloadPercent}%` : isDownloaded ? 'Downloaded!' : 'Download MP3'}
                       aria-label="Download sermon MP3"
                     >
-                      <Download size={14} />
-                    </a>
+                      {isDownloading ? (
+                        <Loader2 size={14} className="animate-spin text-blue-600 dark:text-neon-green" />
+                      ) : isDownloaded ? (
+                        <Check size={14} className="text-emerald-500" />
+                      ) : (
+                        <Download size={14} />
+                      )}
+                    </button>
                   )}
 
                   {/* Play in Background / Minimize Player */}
