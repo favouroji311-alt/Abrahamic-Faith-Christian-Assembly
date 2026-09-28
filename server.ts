@@ -365,9 +365,17 @@ app.all('/api/download', async (req, res) => {
     cleanFilename += '.mp3';
   }
 
+  // File path mapping: resolve relative local paths or external URLs
+  let targetUrl = fileUrl.trim();
+  if (targetUrl.startsWith('/')) {
+    targetUrl = `http://127.0.0.1:${PORT}${targetUrl}`;
+  } else if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
+    targetUrl = `http://127.0.0.1:${PORT}/${targetUrl}`;
+  }
+
   try {
     const isHead = req.method === 'HEAD';
-    const upstreamRes = await fetch(fileUrl, {
+    const upstreamRes = await fetch(targetUrl, {
       method: isHead ? 'HEAD' : 'GET',
     });
 
@@ -377,6 +385,7 @@ app.all('/api/download', async (req, res) => {
 
     res.status(200);
     res.setHeader('Content-Type', 'audio/mpeg');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
     // Set attachment header with both ASCII fallback and UTF-8 encoded filename
     res.setHeader(
       'Content-Disposition',
@@ -522,7 +531,12 @@ app.get('/api/sermons', async (req, res) => {
       if (sbRes.ok) {
         const data = await sbRes.json();
         if (Array.isArray(data) && data.length > 0) {
-          loadedSermons = data.map((row: any) => ({
+          loadedSermons = data
+            .filter((row: any) => {
+              const url = row.audio_file_url || row.audio_url || row.audio || row.file_url || row.url || '';
+              return !url.includes('soundhelix.com');
+            })
+            .map((row: any) => ({
             id: String(row.id || row.sermon_id || Math.random().toString(36).substring(7)),
             title: row.title || row.sermon_title || 'Untitled Sermon',
             speaker: row.speaker || row.preacher || row.pastor || 'Pastor Benwuk',

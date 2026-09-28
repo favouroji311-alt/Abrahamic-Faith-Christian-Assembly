@@ -1,6 +1,6 @@
 /**
- * Audio Download Utility
- * Provides robust file downloading for audio sermons across desktop and mobile browsers.
+ * Robust Audio Download Utility
+ * Handles file path mapping, reliable Blob conversion, and bulletproof anchor-tag triggers.
  */
 
 export interface DownloadProgress {
@@ -10,38 +10,143 @@ export interface DownloadProgress {
 }
 
 /**
- * Downloads an audio file by requesting it through the backend download proxy
- * or fetching it as a blob so the browser's native download prompt is guaranteed to trigger.
+ * Normalizes and maps any audio file path (relative, absolute, or external CDN)
+ * to a fully qualified URL for streaming or downloading.
  */
-export async function downloadAudioFile(
-  fileUrl: string,
+export function resolveAudioFilePath(rawPath?: string | null): string {
+  if (!rawPath || typeof rawPath !== 'string') return '';
+  const trimmed = rawPath.trim();
+  if (!trimmed) return '';
+
+  // Already an absolute URL or blob URL
+  if (
+    trimmed.startsWith('http://') ||
+    trimmed.startsWith('https://') ||
+    trimmed.startsWith('blob:') ||
+    trimmed.startsWith('data:')
+  ) {
+    return trimmed;
+  }
+
+  // Map relative paths based on current window origin
+  if (typeof window !== 'undefined') {
+    if (trimmed.startsWith('/')) {
+      return `${window.location.origin}${trimmed}`;
+    }
+    return `${window.location.origin}/${trimmed}`;
+  }
+
+  return trimmed;
+}
+
+/**
+ * Sanitizes a title into a clean filename across Windows, macOS, and Linux
+ * and ensures an .mp3 extension.
+ */
+export function sanitizeDownloadFilename(rawTitle?: string | null): string {
+  const base = (rawTitle || 'sermon').trim();
+  // Strip characters forbidden in file systems: / \ ? % * : | " < >
+  let clean = base.replace(/[/\\?%*:|"<>#]/g, '_').trim();
+  // Clean double underscores or trailing periods
+  clean = clean.replace(/_+/g, '_').replace(/\.+$/, '');
+  if (!clean.toLowerCase().endsWith('.mp3')) {
+    clean += '.mp3';
+  }
+  return clean;
+}
+
+/**
+ * Builds the same-origin backend proxy download URL.
+ * The backend proxy guarantees proper 'Content-Disposition: attachment' and CORS headers.
+ */
+export function getProxyDownloadUrl(audioUrl: string, filename: string): string {
+  const resolvedUrl = resolveAudioFilePath(audioUrl);
+  const cleanFilename = sanitizeDownloadFilename(filename);
+  return `/api/download?url=${encodeURIComponent(resolvedUrl)}&filename=${encodeURIComponent(cleanFilename)}`;
+}
+
+/**
+ * Programmatically creates and triggers a download via an anchor tag element.
+ * Follows strict DOM requirements to ensure compatibility across Safari, Chrome, Firefox,
+ * mobile viewports, and sandboxed iframe environments:
+ * - Does NOT use `display: none` (which causes WebKit/Safari to ignore click events).
+ * - Appends to document.body, dispatches MouseEvent, and defers cleanup.
+ */
+export function triggerAnchorTagDownload(targetUrl: string, filename: string): void {
+  const cleanFilename = sanitizeDownloadFilename(filename);
+  const anchor = document.createElement('a');
+
+  // Use invisible fixed positioning instead of display: none
+  anchor.style.position = 'fixed';
+  anchor.style.top = '-9999px';
+  anchor.style.left = '-9999px';
+  anchor.style.width = '1px';
+  anchor.style.height = '1px';
+  anchor.style.opacity = '0';
+  anchor.style.pointerEvents = 'none';
+
+  anchor.href = targetUrl;
+  anchor.download = cleanFilename;
+  anchor.setAttribute('download', cleanFilename);
+  anchor.setAttribute('target', '_self');
+  anchor.rel = 'noopener noreferrer';
+
+  document.body.appendChild(anchor);
+
+  try {
+    // Primary trigger: Dispatch synthetic click event
+    const clickEvent = new MouseEvent('click', {
+      view: window,
+      bubbles: true,
+      cancelable: true,
+    });
+    anchor.dispatchEvent(clickEvent);
+  } catch {
+    // Fallback: direct method call
+    anchor.click();
+  }
+
+  // Defer removal to allow the browser download manager to register the request
+  setTimeout(() => {
+    if (document.body.contains(anchor)) {
+      document.body.removeChild(anchor);
+    }
+  }, 2000);
+}
+
+/**
+ * Downloads audio by fetching the file, converting to a Blob, and triggering
+ * an anchor tag with the generated blob: URL.
+ * Falls back to direct proxy anchor trigger if Blob conversion or fetch fails.
+ */
+export async function downloadSermonAudio(
+  rawAudioUrl: string,
   preferredFilename: string,
   onProgress?: (progress: DownloadProgress) => void
 ): Promise<void> {
-  if (!fileUrl) {
-    throw new Error('Audio URL is required for download.');
+  const mappedUrl = resolveAudioFilePath(rawAudioUrl);
+  const cleanFilename = sanitizeDownloadFilename(preferredFilename);
+
+  if (!mappedUrl) {
+    throw new Error('No valid audio file URL found for sermon download.');
   }
 
-  // Ensure clean filename with .mp3 extension
-  let filename = preferredFilename.trim().replace(/[/\\?%*:|"<>]/g, '_');
-  if (!filename.toLowerCase().endsWith('.mp3')) {
-    filename += '.mp3';
-  }
-
-  const proxyDownloadUrl = `/api/download?url=${encodeURIComponent(fileUrl)}&filename=${encodeURIComponent(filename)}`;
+  const proxyUrl = getProxyDownloadUrl(mappedUrl, cleanFilename);
 
   try {
-    // 1. Fetch through our same-origin proxy which handles CORS and sets Content-Disposition
-    const response = await fetch(proxyDownloadUrl);
+    // Fetch through our same-origin download proxy
+    const response = await fetch(proxyUrl);
 
     if (!response.ok) {
-      throw new Error(`Download request failed with status: ${response.status}`);
+      throw new Error(`Proxy download returned status ${response.status}: ${response.statusText}`);
     }
 
     const contentLength = response.headers.get('content-length');
     const totalBytes = contentLength ? parseInt(contentLength, 10) : 0;
 
-    // If reader is supported and we have a stream, read with progress
+    let blob: Blob;
+
+    // If ReadableStream is available and total size is known, track streaming progress
     if (response.body && totalBytes > 0) {
       const reader = response.body.getReader();
       let receivedBytes = 0;
@@ -64,50 +169,30 @@ export async function downloadAudioFile(
         }
       }
 
-      // Combine chunks into a single Blob
-      const blob = new Blob(chunks, { type: 'audio/mpeg' });
-      triggerBlobDownload(blob, filename);
-      return;
+      blob = new Blob(chunks, { type: 'audio/mpeg' });
+    } else {
+      // Direct Blob conversion
+      blob = await response.blob();
     }
 
-    // Fallback: standard blob response if streaming reader wasn't used
-    const blob = await response.blob();
-    triggerBlobDownload(blob, filename);
-  } catch (err) {
-    console.warn('In-memory blob download failed or was interrupted, using direct link fallback:', err);
-    // Fallback: direct anchor trigger pointing to /api/download which sends attachment header
-    const fallbackLink = document.createElement('a');
-    fallbackLink.href = proxyDownloadUrl;
-    fallbackLink.setAttribute('download', filename);
-    fallbackLink.style.display = 'none';
-    document.body.appendChild(fallbackLink);
-    fallbackLink.click();
+    // Verify Blob has content
+    if (!blob || blob.size === 0) {
+      throw new Error('Downloaded Blob is empty.');
+    }
+
+    // Convert Blob to Object URL (Guaranteed same-origin, respects download filename)
+    const blobUrl = window.URL.createObjectURL(blob);
+
+    // Trigger download using robust anchor tag
+    triggerAnchorTagDownload(blobUrl, cleanFilename);
+
+    // Keep Object URL in memory for 60 seconds to ensure the download pipeline finishes
     setTimeout(() => {
-      if (document.body.contains(fallbackLink)) {
-        document.body.removeChild(fallbackLink);
-      }
-    }, 2000);
+      window.URL.revokeObjectURL(blobUrl);
+    }, 60000);
+  } catch (err) {
+    console.warn('Blob conversion download encountered an issue, falling back to direct anchor trigger:', err);
+    // Reliable Fallback: Directly trigger anchor tag pointing to /api/download
+    triggerAnchorTagDownload(proxyUrl, cleanFilename);
   }
-}
-
-/**
- * Triggers browser download dialog from an in-memory Blob.
- * Because blob: URLs are same-origin, all browsers honor the download filename.
- */
-function triggerBlobDownload(blob: Blob, filename: string): void {
-  const blobUrl = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.style.display = 'none';
-  anchor.href = blobUrl;
-  anchor.download = filename;
-  document.body.appendChild(anchor);
-  anchor.click();
-
-  // Cleanup after browser triggers download
-  setTimeout(() => {
-    if (document.body.contains(anchor)) {
-      document.body.removeChild(anchor);
-    }
-    URL.revokeObjectURL(blobUrl);
-  }, 2000);
 }

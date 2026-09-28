@@ -87,7 +87,12 @@ export async function fetchSermons(): Promise<{ sermons: Sermon[] }> {
         .order('created_at', { ascending: false });
 
       if (!error && data && data.length > 0) {
-        const mapped: Sermon[] = data.map((row: any) => ({
+        const mapped: Sermon[] = data
+          .filter((row: any) => {
+            const url = row.audio_file_url || row.audio_url || row.audio || row.file_url || row.url || '';
+            return !url.includes('soundhelix.com');
+          })
+          .map((row: any) => ({
           id: String(row.id || row.sermon_id || Math.random().toString(36).substring(7)),
           title: row.title || row.sermon_title || 'Untitled Sermon',
           speaker: row.speaker || row.preacher || row.pastor || 'Pastor Benwuk',
@@ -138,4 +143,60 @@ export async function requestGeneratedDescription(
     console.warn('Failed to generate description:', err);
   }
   return null;
+}
+
+/**
+ * Resolves the audio URL for any sermon record, checking all possible field variations
+ * and converting relative paths to absolute URLs.
+ */
+export function getSermonAudioUrl(sermon?: Partial<Sermon> | null): string {
+  if (!sermon) return '';
+  const rawUrl =
+    sermon.audio_file_url ||
+    (sermon as any).audio_url ||
+    (sermon as any).audio ||
+    (sermon as any).file_url ||
+    (sermon as any).url ||
+    '';
+
+  if (!rawUrl || typeof rawUrl !== 'string') return '';
+  const trimmed = rawUrl.trim();
+  if (!trimmed) return '';
+
+  if (
+    trimmed.startsWith('http://') ||
+    trimmed.startsWith('https://') ||
+    trimmed.startsWith('blob:') ||
+    trimmed.startsWith('data:')
+  ) {
+    return trimmed;
+  }
+
+  if (typeof window !== 'undefined') {
+    if (trimmed.startsWith('/')) {
+      return `${window.location.origin}${trimmed}`;
+    }
+    return `${window.location.origin}/${trimmed}`;
+  }
+
+  return trimmed;
+}
+
+/**
+ * Generates a clean, file-system-safe download filename with .mp3 extension.
+ */
+export function getSermonDownloadFilename(sermon?: Partial<Sermon> | null): string {
+  const title = sermon?.title?.trim() || 'sermon';
+  const cleanTitle = title.replace(/[/\\?%*:|"<>#]/g, '_').trim().replace(/_+/g, '_');
+  return cleanTitle.toLowerCase().endsWith('.mp3') ? cleanTitle : `${cleanTitle}.mp3`;
+}
+
+/**
+ * Generates the backend proxy download URL for a sermon.
+ */
+export function getSermonDownloadProxyUrl(sermon?: Partial<Sermon> | null): string {
+  const audioUrl = getSermonAudioUrl(sermon);
+  if (!audioUrl) return '#';
+  const filename = getSermonDownloadFilename(sermon);
+  return `/api/download?url=${encodeURIComponent(audioUrl)}&filename=${encodeURIComponent(filename)}`;
 }

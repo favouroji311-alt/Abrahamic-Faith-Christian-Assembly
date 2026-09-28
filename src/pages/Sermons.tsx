@@ -21,12 +21,15 @@ import {
 } from 'lucide-react';
 import { useAudio } from '../context/AudioContext';
 import { SEO } from '../components/common/SEO';
-import { downloadAudioFile } from '../lib/download';
+import { downloadSermonAudio, triggerAnchorTagDownload } from '../lib/download';
 import { 
   fetchSermons, 
   Sermon, 
   INITIAL_SERMONS,
-  requestGeneratedDescription
+  requestGeneratedDescription,
+  getSermonAudioUrl,
+  getSermonDownloadFilename,
+  getSermonDownloadProxyUrl
 } from '../lib/sermons';
 
 export function Sermons() {
@@ -57,15 +60,19 @@ export function Sermons() {
   const [downloadSuccessId, setDownloadSuccessId] = useState<string | null>(null);
 
   const handleDownload = async (sermon: Sermon, e?: MouseEvent) => {
-    if (e) e.stopPropagation();
-    if (!sermon.audio_file_url) return;
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    const audioUrl = getSermonAudioUrl(sermon);
+    if (!audioUrl) return;
 
+    const filename = getSermonDownloadFilename(sermon);
     setDownloadingId(sermon.id);
     setDownloadProgress(0);
 
     try {
-      const cleanName = `${sermon.title}.mp3`;
-      await downloadAudioFile(sermon.audio_file_url, cleanName, (progress) => {
+      await downloadSermonAudio(audioUrl, filename, (progress) => {
         setDownloadProgress(progress.percent);
       });
       setDownloadSuccessId(sermon.id);
@@ -73,7 +80,12 @@ export function Sermons() {
         setDownloadSuccessId(null);
       }, 3500);
     } catch (err) {
-      console.error('Download error:', err);
+      console.warn('Blob conversion download failed, triggering direct anchor download:', err);
+      triggerAnchorTagDownload(getSermonDownloadProxyUrl(sermon), filename);
+      setDownloadSuccessId(sermon.id);
+      setTimeout(() => {
+        setDownloadSuccessId(null);
+      }, 3500);
     } finally {
       setDownloadingId(null);
       setDownloadProgress(0);
@@ -147,7 +159,7 @@ export function Sermons() {
     <div className="pt-20 sm:pt-24 min-h-screen overflow-hidden pb-32">
       <SEO 
         title="Sermons & Audio Teachings | Abrahamic Faith Christian Assembly"
-        description="Listen to transformative Bible teachings, audio sermons, and faith-building series in the AFCA Media Vault. Stream live and archived messages."
+        description="Listen to transformative Bible teachings, audio sermons, and faith-building series in the AFCA Media Vault. Stream spirit-filled messages."
         url="/sermons"
       />
       {/* Header Section */}
@@ -158,7 +170,7 @@ export function Sermons() {
               <div className="flex items-center gap-2 mb-3">
                 <span className="caption-mono !text-[9px] px-3 py-1 liquid-inset rounded-full text-blue-600 dark:text-neon-green font-bold flex items-center gap-1.5">
                   <Radio size={12} className="text-blue-600 dark:text-neon-green animate-pulse" />
-                  AUDIO TEACHINGS ARCHIVE
+                  AUDIO TEACHINGS VAULT
                 </span>
               </div>
               <motion.h1 
@@ -277,7 +289,7 @@ export function Sermons() {
                   </div>
                   <div className="flex justify-between text-[10px] font-mono text-slate-500 dark:text-slate-400">
                     <span>{currentTrack?.id === featuredSermon.id ? formatTime(currentTime) : '0:00'}</span>
-                    <span>{currentTrack?.id === featuredSermon.id && duration > 0 ? formatTime(duration) : '55:20'}</span>
+                    <span>{currentTrack?.id === featuredSermon.id && duration > 0 ? formatTime(duration) : (featuredSermon.duration || '40 mins')}</span>
                   </div>
                 </div>
 
@@ -343,12 +355,14 @@ export function Sermons() {
                     <RotateCw size={16} />
                   </button>
 
-                  {featuredSermon.audio_file_url && (
-                    <button
-                      onClick={() => handleDownload(featuredSermon)}
-                      disabled={downloadingId === featuredSermon.id}
-                      className="liquid-glass-button px-5 py-3.5 rounded-full text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-neon-green flex items-center gap-2 cursor-pointer ml-auto sm:ml-0 transition-all disabled:opacity-75"
+                  {getSermonAudioUrl(featuredSermon) && (
+                    <a
+                      href={getSermonDownloadProxyUrl(featuredSermon)}
+                      download={getSermonDownloadFilename(featuredSermon)}
+                      onClick={(e) => handleDownload(featuredSermon, e)}
+                      className="liquid-glass-button px-5 py-3.5 rounded-full text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-neon-green flex items-center gap-2 cursor-pointer ml-auto sm:ml-0 transition-all shadow-sm"
                       title="Download MP3 to device"
+                      aria-label="Download sermon MP3"
                     >
                       {downloadingId === featuredSermon.id ? (
                         <>
@@ -358,7 +372,7 @@ export function Sermons() {
                       ) : downloadSuccessId === featuredSermon.id ? (
                         <>
                           <Check size={15} className="text-emerald-500" />
-                          <span className="text-emerald-500">Downloaded!</span>
+                          <span className="text-emerald-500 font-bold">Downloaded!</span>
                         </>
                       ) : (
                         <>
@@ -366,7 +380,7 @@ export function Sermons() {
                           <span>Download MP3</span>
                         </>
                       )}
-                    </button>
+                    </a>
                   )}
                 </div>
               </div>
@@ -412,7 +426,7 @@ export function Sermons() {
 
                   <span className="caption-mono !text-[8px] text-slate-500 dark:text-slate-400 mt-4 flex items-center gap-1 font-bold">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping inline-block mr-1" />
-                    DIGITAL AUDIO ARCHIVE
+                    DIGITAL AUDIO VAULT
                   </span>
                 </div>
               </div>
@@ -596,14 +610,15 @@ export function Sermons() {
                           <Maximize2 size={11} />
                         </button>
 
-                        {s.audio_file_url && (
-                          <button
+                        {getSermonAudioUrl(s) && (
+                          <a
+                            href={getSermonDownloadProxyUrl(s)}
+                            download={getSermonDownloadFilename(s)}
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDownload(s, e);
                             }}
-                            disabled={downloadingId === s.id}
-                            className="liquid-glass-button p-1.5 rounded-full text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-neon-green cursor-pointer disabled:opacity-50"
+                            className="liquid-glass-button p-1.5 rounded-full text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-neon-green cursor-pointer transition-all"
                             title={`Download ${s.title} MP3`}
                             aria-label={`Download ${s.title} MP3`}
                           >
@@ -614,7 +629,7 @@ export function Sermons() {
                             ) : (
                               <Download size={11} />
                             )}
-                          </button>
+                          </a>
                         )}
                       </div>
                     </div>
@@ -624,46 +639,6 @@ export function Sermons() {
             })}
           </div>
         )}
-      </section>
-
-      {/* Archive Section */}
-      <section className="py-16 sm:py-24 border-t border-slate-300/40 dark:border-slate-800/60">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="mb-12 sm:mb-16">
-            <h2 className="text-3xl sm:text-5xl md:text-7xl font-black text-slate-900 dark:text-white tracking-tight leading-none uppercase">
-              SERMON <span className="text-slate-400 dark:text-slate-600 italic">ARCHIVE.</span>
-            </h2>
-          </div>
-
-          <div className="grid gap-10 sm:gap-16">
-            {[2026, 2025, 2024].map((year) => (
-              <div key={year} className="liquid-glass p-6 sm:p-10 rounded-3xl grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-10 items-center liquid-sheen">
-                <div className="md:col-span-4 self-center">
-                  <h3 className="text-5xl sm:text-7xl md:text-8xl font-black text-slate-400 dark:text-slate-600 leading-none tracking-tight">{year}</h3>
-                </div>
-                <div className="md:col-span-8">
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-                      .reverse()
-                      .map((month) => (
-                      <button 
-                        key={month}
-                        onClick={() => {
-                          setSearchQuery(month);
-                          window.scrollTo({ top: 400, behavior: 'smooth' });
-                        }}
-                        className="group flex flex-col items-start text-left p-3.5 sm:p-4 liquid-glass-button hover:liquid-inset transition-all rounded-2xl cursor-pointer"
-                      >
-                        <span className="caption-mono !text-[8px] opacity-60 mb-1">Month</span>
-                        <span className="text-sm sm:text-base font-black text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-neon-green transition-colors uppercase tracking-tight">{month}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
       </section>
     </div>
   );
