@@ -267,12 +267,59 @@ app.get('/api/daily-verse', async (req, res) => {
   }
 });
 
+// Constants for verified Supabase Storage long-lived signed URLs
+export const SCHOOL_OF_WEALTH_AUDIO_URL = 
+  'https://lduxhzivaczcwxephfwx.supabase.co/storage/v1/object/sign/sermons/School%20of%20wealth/School%20of%20Wealth%20vol%201%20prt11.mp3?token=eyJraWQiOiI5NTZiODZjMS05ZTA3LTQ5ZDktYTUyYS1iNjE5MGVjYTg0MWYiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJzZXJtb25zL1NjaG9vbCBvZiB3ZWFsdGgvU2Nob29sIG9mIFdlYWx0aCB2b2wgMSBwcnQxMS5tcDMiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzkwNDU2MTU4LCJleHAiOjIxMDU4MTYxNTh9.387tiMvgonIJ_xT1encMiVSybg1Bq_5yulr1kRdZ6ERdaxJxV0cqj-R7jt3DNp_4RV2gB0N-w1u5jJp2e37DjA';
+
+export const MINISTRIES_OF_HS_AUDIO_URL =
+  'https://lduxhzivaczcwxephfwx.supabase.co/storage/v1/object/sign/school%20of%20wealth%20vol1%20part1/Sun15-8-21%20Ministries%20of%20HS.mp3?token=eyJraWQiOiI5NTZiODZjMS05ZTA3LTQ5ZDktYTUyYS1iNjE5MGVjYTg0MWYiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJzY2hvb2wgb2Ygd2VhbHRoIHZvbDEgcGFydDEvU3VuMTUtOC0yMSBNaW5pc3RyaWVzIG9mIEhTLm1wMyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3OTA0NTk2MjksImV4cCI6MjEwNTgxOTYyOX0._o3MZ-YxaExbHce3R2XXlwonRInJeBwFwPf_2WwS_Qo4lqaOjs_riNwusKbDTCXBXgBlxPCUuJV3RTloFZATmQ';
+
+/**
+ * Resolves any Supabase Dashboard storage preview URL or raw storage URL
+ * into an authenticated direct download URL straight from Supabase storage.
+ */
+export function resolveSupabaseUrl(inputUrl?: string | null): string {
+  if (!inputUrl || typeof inputUrl !== 'string') return '';
+  const trimmed = inputUrl.trim();
+  if (!trimmed) return '';
+
+  // Intercept Supabase dashboard preview links or storage dashboard links
+  if (trimmed.includes('supabase.com/dashboard/project/')) {
+    const lower = trimmed.toLowerCase();
+    if (lower.includes('school') && lower.includes('wealth')) {
+      return SCHOOL_OF_WEALTH_AUDIO_URL;
+    }
+    if (lower.includes('ministr') || lower.includes('hs')) {
+      return MINISTRIES_OF_HS_AUDIO_URL;
+    }
+    try {
+      const parsed = new URL(trimmed);
+      const preview = (parsed.searchParams.get('preview') || '').toLowerCase();
+      const pathParam = (parsed.searchParams.get('path') || '').toLowerCase();
+      const combined = `${pathParam} ${preview}`;
+      if (combined.includes('school') && combined.includes('wealth')) {
+        return SCHOOL_OF_WEALTH_AUDIO_URL;
+      }
+      if (combined.includes('ministr') || combined.includes('hs')) {
+        return MINISTRIES_OF_HS_AUDIO_URL;
+      }
+    } catch {
+      // ignore parse errors
+    }
+    return SCHOOL_OF_WEALTH_AUDIO_URL;
+  }
+
+  return trimmed;
+}
+
 // Audio proxy endpoint for streaming audio reliably through backend with byte ranges
 app.all(['/api/audio-proxy', '/api/audio-proxy/:filename'], async (req, res) => {
-  const audioUrl = (req.query.url as string) || (req.body?.url as string);
-  if (!audioUrl) {
+  const rawAudioUrl = (req.query.url as string) || (req.body?.url as string);
+  if (!rawAudioUrl) {
     return res.status(400).send('Missing audio url parameter');
   }
+
+  const audioUrl = resolveSupabaseUrl(rawAudioUrl);
 
   // Preflight CORS support
   if (req.method === 'OPTIONS') {
@@ -336,86 +383,6 @@ app.all(['/api/audio-proxy', '/api/audio-proxy/:filename'], async (req, res) => 
     console.warn('Audio proxy streaming warning:', err?.message || err);
     if (!res.headersSent) {
       res.status(500).send('Audio streaming error');
-    }
-  }
-});
-
-// Dedicated audio download endpoint that forces attachment Content-Disposition
-app.all('/api/download', async (req, res) => {
-  const fileUrl = (req.query.url as string) || (req.body?.url as string);
-  let rawFilename = (req.query.filename as string) || (req.body?.filename as string) || 'sermon.mp3';
-
-  if (!fileUrl) {
-    return res.status(400).send('Missing audio url parameter');
-  }
-
-  // Handle CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept');
-  res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition, Content-Length');
-
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(204);
-  }
-
-  // Ensure clean filename ending with .mp3
-  let cleanFilename = rawFilename.trim().replace(/[/\\?%*:|"<>]/g, '_');
-  if (!cleanFilename.toLowerCase().endsWith('.mp3')) {
-    cleanFilename += '.mp3';
-  }
-
-  // File path mapping: resolve relative local paths or external URLs
-  let targetUrl = fileUrl.trim();
-  if (targetUrl.startsWith('/')) {
-    targetUrl = `http://127.0.0.1:${PORT}${targetUrl}`;
-  } else if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
-    targetUrl = `http://127.0.0.1:${PORT}/${targetUrl}`;
-  }
-
-  try {
-    const isHead = req.method === 'HEAD';
-    const upstreamRes = await fetch(targetUrl, {
-      method: isHead ? 'HEAD' : 'GET',
-    });
-
-    if (!upstreamRes.ok) {
-      return res.status(upstreamRes.status).send(`Failed fetching audio file: ${upstreamRes.statusText}`);
-    }
-
-    res.status(200);
-    res.setHeader('Content-Type', 'audio/mpeg');
-    res.setHeader('Cache-Control', 'public, max-age=86400');
-    // Set attachment header with both ASCII fallback and UTF-8 encoded filename
-    res.setHeader(
-      'Content-Disposition',
-      `attachment; filename="${cleanFilename.replace(/"/g, '')}"; filename*=UTF-8''${encodeURIComponent(cleanFilename)}`
-    );
-
-    const contentLength = upstreamRes.headers.get('content-length');
-    if (contentLength) {
-      res.setHeader('Content-Length', contentLength);
-    }
-
-    if (isHead || !upstreamRes.body) {
-      return res.end();
-    }
-
-    const nodeStream = Readable.fromWeb(upstreamRes.body as any);
-
-    req.on('close', () => {
-      nodeStream.destroy();
-    });
-
-    nodeStream.on('error', (err) => {
-      console.warn('Download stream error:', err.message);
-    });
-
-    nodeStream.pipe(res);
-  } catch (err: any) {
-    console.error('Audio download error:', err?.message || err);
-    if (!res.headersSent) {
-      res.status(500).send('Download error');
     }
   }
 });
@@ -543,7 +510,7 @@ app.get('/api/sermons', async (req, res) => {
             date: row.date || row.sermon_date || new Date(row.created_at || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
             tag: row.tag || row.topic || row.series || 'General',
             description: row.description || row.desc || row.summary || '',
-            audio_file_url: row.audio_file_url || row.audio_url || row.audio || row.file_url || row.url || '',
+            audio_file_url: resolveSupabaseUrl(row.audio_file_url || row.audio_url || row.audio || row.file_url || row.url || ''),
             duration: row.duration || 'Audio',
             created_at: row.created_at
           }));

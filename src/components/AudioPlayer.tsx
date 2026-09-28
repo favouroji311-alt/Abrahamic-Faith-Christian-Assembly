@@ -8,7 +8,6 @@ import {
   Volume2, 
   VolumeX, 
   Volume1, 
-  Download, 
   X, 
   Radio, 
   Loader2,
@@ -19,12 +18,6 @@ import {
   Headphones
 } from 'lucide-react';
 import { useAudio } from '../context/AudioContext';
-import { downloadSermonAudio, triggerAnchorTagDownload } from '../lib/download';
-import { 
-  getSermonAudioUrl, 
-  getSermonDownloadFilename, 
-  getSermonDownloadProxyUrl 
-} from '../lib/sermons';
 
 export function AudioPlayer() {
   const {
@@ -52,39 +45,7 @@ export function AudioPlayer() {
 
   const [isCopied, setIsCopied] = useState(false);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
-  const [downloadPercent, setDownloadPercent] = useState(0);
-  const [isDownloaded, setIsDownloaded] = useState(false);
   const progressBarRef = useRef<HTMLDivElement | null>(null);
-
-  const handleDownload = async (e?: MouseEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    const audioUrl = getSermonAudioUrl(currentTrack);
-    if (!audioUrl || !currentTrack) return;
-
-    const filename = getSermonDownloadFilename(currentTrack);
-    setIsDownloading(true);
-    setDownloadPercent(0);
-
-    try {
-      await downloadSermonAudio(audioUrl, filename, (prog) => {
-        setDownloadPercent(prog.percent);
-      });
-      setIsDownloaded(true);
-      setTimeout(() => setIsDownloaded(false), 3000);
-    } catch (err) {
-      console.warn('Blob conversion in player failed, falling back to direct anchor trigger:', err);
-      triggerAnchorTagDownload(getSermonDownloadProxyUrl(currentTrack), filename);
-      setIsDownloaded(true);
-      setTimeout(() => setIsDownloaded(false), 3000);
-    } finally {
-      setIsDownloading(false);
-      setDownloadPercent(0);
-    }
-  };
 
   if (!currentTrack) return null;
 
@@ -246,26 +207,6 @@ export function AudioPlayer() {
                   >
                     {isCopied ? <Check size={14} className="text-emerald-500" /> : <Share2 size={14} />}
                   </button>
-
-                  {/* Direct Download Anchor Tag */}
-                  {getSermonAudioUrl(currentTrack) && (
-                    <a
-                      href={getSermonDownloadProxyUrl(currentTrack)}
-                      download={getSermonDownloadFilename(currentTrack)}
-                      onClick={(e) => handleDownload(e)}
-                      className="p-1.5 sm:p-2 rounded-full liquid-glass-button text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-neon-green cursor-pointer transition-all"
-                      title={isDownloading ? `Downloading ${downloadPercent}%` : isDownloaded ? 'Downloaded!' : 'Download MP3'}
-                      aria-label="Download sermon MP3"
-                    >
-                      {isDownloading ? (
-                        <Loader2 size={14} className="animate-spin text-blue-600 dark:text-neon-green" />
-                      ) : isDownloaded ? (
-                        <Check size={14} className="text-emerald-500" />
-                      ) : (
-                        <Download size={14} />
-                      )}
-                    </a>
-                  )}
 
                   {/* Play in Background / Minimize Player */}
                   <button

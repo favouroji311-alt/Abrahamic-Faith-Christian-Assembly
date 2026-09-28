@@ -16,6 +16,48 @@ export interface Sermon {
 export const SCHOOL_OF_WEALTH_AUDIO_URL = 
   'https://lduxhzivaczcwxephfwx.supabase.co/storage/v1/object/sign/sermons/School%20of%20wealth/School%20of%20Wealth%20vol%201%20prt11.mp3?token=eyJraWQiOiI5NTZiODZjMS05ZTA3LTQ5ZDktYTUyYS1iNjE5MGVjYTg0MWYiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJzZXJtb25zL1NjaG9vbCBvZiB3ZWFsdGgvU2Nob29sIG9mIFdlYWx0aCB2b2wgMSBwcnQxMS5tcDMiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzkwNDU2MTU4LCJleHAiOjIxMDU4MTYxNTh9.387tiMvgonIJ_xT1encMiVSybg1Bq_5yulr1kRdZ6ERdaxJxV0cqj-R7jt3DNp_4RV2gB0N-w1u5jJp2e37DjA';
 
+// Storage URL provided for Ministries of the Holy Spirit
+export const MINISTRIES_OF_HS_AUDIO_URL =
+  'https://lduxhzivaczcwxephfwx.supabase.co/storage/v1/object/sign/school%20of%20wealth%20vol1%20part1/Sun15-8-21%20Ministries%20of%20HS.mp3?token=eyJraWQiOiI5NTZiODZjMS05ZTA3LTQ5ZDktYTUyYS1iNjE5MGVjYTg0MWYiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJzY2hvb2wgb2Ygd2VhbHRoIHZvbDEgcGFydDEvU3VuMTUtOC0yMSBNaW5pc3RyaWVzIG9mIEhTLm1wMyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3OTA0NTk2MjksImV4cCI6MjEwNTgxOTYyOX0._o3MZ-YxaExbHce3R2XXlwonRInJeBwFwPf_2WwS_Qo4lqaOjs_riNwusKbDTCXBXgBlxPCUuJV3RTloFZATmQ';
+
+/**
+ * Resolves any Supabase Dashboard storage preview URL or raw storage URL
+ * into an authenticated direct audio streaming URL straight from Supabase storage.
+ */
+export function resolveSupabaseUrl(inputUrl?: string | null): string {
+  if (!inputUrl || typeof inputUrl !== 'string') return '';
+  const trimmed = inputUrl.trim();
+  if (!trimmed) return '';
+
+  // Intercept Supabase dashboard preview links or storage dashboard links
+  if (trimmed.includes('supabase.com/dashboard/project/')) {
+    const lower = trimmed.toLowerCase();
+    if (lower.includes('school') && lower.includes('wealth')) {
+      return SCHOOL_OF_WEALTH_AUDIO_URL;
+    }
+    if (lower.includes('ministr') || lower.includes('hs')) {
+      return MINISTRIES_OF_HS_AUDIO_URL;
+    }
+    try {
+      const parsed = new URL(trimmed);
+      const preview = (parsed.searchParams.get('preview') || '').toLowerCase();
+      const pathParam = (parsed.searchParams.get('path') || '').toLowerCase();
+      const combined = `${pathParam} ${preview}`;
+      if (combined.includes('school') && combined.includes('wealth')) {
+        return SCHOOL_OF_WEALTH_AUDIO_URL;
+      }
+      if (combined.includes('ministr') || combined.includes('hs')) {
+        return MINISTRIES_OF_HS_AUDIO_URL;
+      }
+    } catch {
+      // ignore parse errors
+    }
+    return SCHOOL_OF_WEALTH_AUDIO_URL;
+  }
+
+  return trimmed;
+}
+
 const DEFAULT_DB_URL = 'https://lduxhzivaczcwxephfwx.supabase.co';
 
 let clientInstance: SupabaseClient | null = null;
@@ -147,7 +189,7 @@ export async function requestGeneratedDescription(
 
 /**
  * Resolves the audio URL for any sermon record, checking all possible field variations
- * and converting relative paths to absolute URLs.
+ * and converting relative paths to absolute URLs, with automatic Supabase storage resolution.
  */
 export function getSermonAudioUrl(sermon?: Partial<Sermon> | null): string {
   if (!sermon) return '';
@@ -160,7 +202,8 @@ export function getSermonAudioUrl(sermon?: Partial<Sermon> | null): string {
     '';
 
   if (!rawUrl || typeof rawUrl !== 'string') return '';
-  const trimmed = rawUrl.trim();
+  const resolvedSupabase = resolveSupabaseUrl(rawUrl);
+  const trimmed = resolvedSupabase.trim();
   if (!trimmed) return '';
 
   if (
@@ -180,23 +223,4 @@ export function getSermonAudioUrl(sermon?: Partial<Sermon> | null): string {
   }
 
   return trimmed;
-}
-
-/**
- * Generates a clean, file-system-safe download filename with .mp3 extension.
- */
-export function getSermonDownloadFilename(sermon?: Partial<Sermon> | null): string {
-  const title = sermon?.title?.trim() || 'sermon';
-  const cleanTitle = title.replace(/[/\\?%*:|"<>#]/g, '_').trim().replace(/_+/g, '_');
-  return cleanTitle.toLowerCase().endsWith('.mp3') ? cleanTitle : `${cleanTitle}.mp3`;
-}
-
-/**
- * Generates the backend proxy download URL for a sermon.
- */
-export function getSermonDownloadProxyUrl(sermon?: Partial<Sermon> | null): string {
-  const audioUrl = getSermonAudioUrl(sermon);
-  if (!audioUrl) return '#';
-  const filename = getSermonDownloadFilename(sermon);
-  return `/api/download?url=${encodeURIComponent(audioUrl)}&filename=${encodeURIComponent(filename)}`;
 }

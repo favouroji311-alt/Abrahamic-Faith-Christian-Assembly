@@ -6,7 +6,6 @@ import {
   Mic, 
   Search, 
   Volume2, 
-  Download, 
   Sparkles,
   Radio,
   FileAudio,
@@ -16,20 +15,16 @@ import {
   Loader2,
   Headphones,
   Maximize2,
-  Minimize2,
-  Check
+  Minimize2
 } from 'lucide-react';
 import { useAudio } from '../context/AudioContext';
 import { SEO } from '../components/common/SEO';
-import { downloadSermonAudio, triggerAnchorTagDownload } from '../lib/download';
 import { 
   fetchSermons, 
   Sermon, 
   INITIAL_SERMONS,
   requestGeneratedDescription,
-  getSermonAudioUrl,
-  getSermonDownloadFilename,
-  getSermonDownloadProxyUrl
+  getSermonAudioUrl
 } from '../lib/sermons';
 
 export function Sermons() {
@@ -55,42 +50,6 @@ export function Sermons() {
   const [generatingDescId, setGeneratingDescId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTopic, setSelectedTopic] = useState('All Topics');
-  const [downloadingId, setDownloadingId] = useState<string | null>(null);
-  const [downloadProgress, setDownloadProgress] = useState<number>(0);
-  const [downloadSuccessId, setDownloadSuccessId] = useState<string | null>(null);
-
-  const handleDownload = async (sermon: Sermon, e?: MouseEvent) => {
-    if (e) {
-      e.stopPropagation();
-      e.preventDefault();
-    }
-    const audioUrl = getSermonAudioUrl(sermon);
-    if (!audioUrl) return;
-
-    const filename = getSermonDownloadFilename(sermon);
-    setDownloadingId(sermon.id);
-    setDownloadProgress(0);
-
-    try {
-      await downloadSermonAudio(audioUrl, filename, (progress) => {
-        setDownloadProgress(progress.percent);
-      });
-      setDownloadSuccessId(sermon.id);
-      setTimeout(() => {
-        setDownloadSuccessId(null);
-      }, 3500);
-    } catch (err) {
-      console.warn('Blob conversion download failed, triggering direct anchor download:', err);
-      triggerAnchorTagDownload(getSermonDownloadProxyUrl(sermon), filename);
-      setDownloadSuccessId(sermon.id);
-      setTimeout(() => {
-        setDownloadSuccessId(null);
-      }, 3500);
-    } finally {
-      setDownloadingId(null);
-      setDownloadProgress(0);
-    }
-  };
 
   // Load sermons on mount
   const loadSermons = async () => {
@@ -354,34 +313,6 @@ export function Sermons() {
                   >
                     <RotateCw size={16} />
                   </button>
-
-                  {getSermonAudioUrl(featuredSermon) && (
-                    <a
-                      href={getSermonDownloadProxyUrl(featuredSermon)}
-                      download={getSermonDownloadFilename(featuredSermon)}
-                      onClick={(e) => handleDownload(featuredSermon, e)}
-                      className="liquid-glass-button px-5 py-3.5 rounded-full text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-neon-green flex items-center gap-2 cursor-pointer ml-auto sm:ml-0 transition-all shadow-sm"
-                      title="Download MP3 to device"
-                      aria-label="Download sermon MP3"
-                    >
-                      {downloadingId === featuredSermon.id ? (
-                        <>
-                          <Loader2 size={15} className="animate-spin text-blue-600 dark:text-neon-green" />
-                          <span>{downloadProgress > 0 ? `Downloading ${downloadProgress}%` : 'Preparing MP3...'}</span>
-                        </>
-                      ) : downloadSuccessId === featuredSermon.id ? (
-                        <>
-                          <Check size={15} className="text-emerald-500" />
-                          <span className="text-emerald-500 font-bold">Downloaded!</span>
-                        </>
-                      ) : (
-                        <>
-                          <Download size={15} />
-                          <span>Download MP3</span>
-                        </>
-                      )}
-                    </a>
-                  )}
                 </div>
               </div>
 
@@ -609,28 +540,6 @@ export function Sermons() {
                         >
                           <Maximize2 size={11} />
                         </button>
-
-                        {getSermonAudioUrl(s) && (
-                          <a
-                            href={getSermonDownloadProxyUrl(s)}
-                            download={getSermonDownloadFilename(s)}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDownload(s, e);
-                            }}
-                            className="liquid-glass-button p-1.5 rounded-full text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-neon-green cursor-pointer transition-all"
-                            title={`Download ${s.title} MP3`}
-                            aria-label={`Download ${s.title} MP3`}
-                          >
-                            {downloadingId === s.id ? (
-                              <Loader2 size={11} className="animate-spin text-blue-600 dark:text-neon-green" />
-                            ) : downloadSuccessId === s.id ? (
-                              <Check size={11} className="text-emerald-500" />
-                            ) : (
-                              <Download size={11} />
-                            )}
-                          </a>
-                        )}
                       </div>
                     </div>
                   </div>

@@ -9,6 +9,7 @@ import { Home } from './pages/Home';
 import { About } from './pages/About';
 import { Ministries } from './pages/Ministries';
 import { Sermons } from './pages/Sermons';
+import { NotFound } from './pages/NotFound';
 import { DailyVerse } from './components/DailyVerse';
 import { ConnectModal, type MessageType } from './components/ConnectModal';
 import { AudioProvider } from './context/AudioContext';
@@ -60,6 +61,7 @@ export default function App() {
                 <Route path="/about" element={<About />} />
                 <Route path="/ministries" element={<Ministries onOpenConnect={handleOpenConnect} />} />
                 <Route path="/sermons" element={<Sermons />} />
+                <Route path="*" element={<NotFound onOpenConnect={handleOpenConnect} />} />
               </Routes>
             </PageTransition>
             

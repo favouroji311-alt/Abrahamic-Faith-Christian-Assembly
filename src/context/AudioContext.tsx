@@ -130,7 +130,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
           console.warn('Proxy fallback play error:', proxyErr?.message || proxyErr);
           setIsLoading(false);
           setIsPlaying(false);
-          setPlaybackError('Unable to stream audio. Please use the direct download link or click retry.');
+          setPlaybackError('Unable to stream audio. Please click retry.');
         });
         return;
       }
@@ -138,7 +138,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
 
     setIsLoading(false);
     setIsPlaying(false);
-    setPlaybackError('Playback error. Click retry or use the direct download link.');
+    setPlaybackError('Playback error. Click retry to try again.');
   };
 
   const togglePlay = () => {
