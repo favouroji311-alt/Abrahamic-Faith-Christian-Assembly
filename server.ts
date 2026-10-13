@@ -268,6 +268,8 @@ app.get('/api/daily-verse', async (req, res) => {
 });
 
 // Constants for verified Supabase Storage long-lived signed URLs
+export const SCHOOL_OF_WEALTH_DOWNLOAD_URL = 'https://gofile.io/d/O29gsMK1';
+
 export const SCHOOL_OF_WEALTH_AUDIO_URL = 
   'https://lduxhzivaczcwxephfwx.supabase.co/storage/v1/object/sign/sermons/School%20of%20wealth/School%20of%20Wealth%20vol%201%20prt11.mp3?token=eyJraWQiOiI5NTZiODZjMS05ZTA3LTQ5ZDktYTUyYS1iNjE5MGVjYTg0MWYiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJzZXJtb25zL1NjaG9vbCBvZiB3ZWFsdGgvU2Nob29sIG9mIFdlYWx0aCB2b2wgMSBwcnQxMS5tcDMiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzkwNDU2MTU4LCJleHAiOjIxMDU4MTYxNTh9.387tiMvgonIJ_xT1encMiVSybg1Bq_5yulr1kRdZ6ERdaxJxV0cqj-R7jt3DNp_4RV2gB0N-w1u5jJp2e37DjA';
 
@@ -503,17 +505,24 @@ app.get('/api/sermons', async (req, res) => {
               const url = row.audio_file_url || row.audio_url || row.audio || row.file_url || row.url || '';
               return !url.includes('soundhelix.com');
             })
-            .map((row: any) => ({
-            id: String(row.id || row.sermon_id || Math.random().toString(36).substring(7)),
-            title: row.title || row.sermon_title || 'Untitled Sermon',
-            speaker: row.speaker || row.preacher || row.pastor || 'Pastor Benwuk',
-            date: row.date || row.sermon_date || new Date(row.created_at || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-            tag: row.tag || row.topic || row.series || 'General',
-            description: row.description || row.desc || row.summary || '',
-            audio_file_url: resolveSupabaseUrl(row.audio_file_url || row.audio_url || row.audio || row.file_url || row.url || ''),
-            duration: row.duration || 'Audio',
-            created_at: row.created_at
-          }));
+            .map((row: any) => {
+              const title = row.title || row.sermon_title || 'Untitled Sermon';
+              const isSchoolOfWealth = 
+                title.toLowerCase().includes('school of wealth') || 
+                String(row.id || '').includes('45c2caf4-ec0c-47c4-879b-30e02788af62');
+              return {
+                id: String(row.id || row.sermon_id || Math.random().toString(36).substring(7)),
+                title,
+                speaker: row.speaker || row.preacher || row.pastor || 'Pastor Benwuk',
+                date: row.date || row.sermon_date || new Date(row.created_at || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                tag: row.tag || row.topic || row.series || 'General',
+                description: row.description || row.desc || row.summary || '',
+                audio_file_url: resolveSupabaseUrl(row.audio_file_url || row.audio_url || row.audio || row.file_url || row.url || ''),
+                download_url: isSchoolOfWealth ? SCHOOL_OF_WEALTH_DOWNLOAD_URL : (row.download_url || undefined),
+                duration: row.duration || 'Audio',
+                created_at: row.created_at
+              };
+            });
           source = 'supabase';
         }
       }

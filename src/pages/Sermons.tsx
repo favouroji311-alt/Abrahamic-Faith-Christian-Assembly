@@ -15,7 +15,8 @@ import {
   Loader2,
   Headphones,
   Maximize2,
-  Minimize2
+  Minimize2,
+  Download
 } from 'lucide-react';
 import { useAudio } from '../context/AudioContext';
 import { SEO } from '../components/common/SEO';
@@ -24,7 +25,8 @@ import {
   Sermon, 
   INITIAL_SERMONS,
   requestGeneratedDescription,
-  getSermonAudioUrl
+  getSermonAudioUrl,
+  getSermonDownloadUrl
 } from '../lib/sermons';
 
 export function Sermons() {
@@ -99,6 +101,7 @@ export function Sermons() {
     INITIAL_SERMONS[0];
 
   const isFeaturedPlaying = currentTrack?.id === featuredSermon.id && isPlaying;
+  const featuredDownloadUrl = getSermonDownloadUrl(featuredSermon);
 
   // Filter sermons dynamically based on actual sermon topics
   const dynamicTags = Array.from(new Set(sermons.map(s => s.tag).filter(Boolean)));
@@ -295,6 +298,20 @@ export function Sermons() {
                     <span>{isDockedPlayerOpen ? 'Undock Player' : 'Dock Player'}</span>
                   </button>
 
+                  {/* Dedicated Download Button (Active only for School of Wealth) */}
+                  {featuredDownloadUrl && (
+                    <a
+                      href={featuredDownloadUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="liquid-glass-button px-5 py-3.5 rounded-full text-xs font-bold text-slate-800 dark:text-slate-100 hover:text-blue-600 dark:hover:text-neon-green flex items-center gap-2 cursor-pointer shadow-sm border border-blue-500/30 dark:border-neon-green/30 hover:border-blue-500 dark:hover:border-neon-green transition-all"
+                      title="Download School of Wealth sermon audio file (MP3)"
+                    >
+                      <Download size={15} className="text-blue-600 dark:text-neon-green" />
+                      <span>DOWNLOAD MP3</span>
+                    </a>
+                  )}
+
                   {/* 10s Rewind & Forward */}
                   <button
                     onClick={() => skipTime(-10)}
@@ -434,6 +451,7 @@ export function Sermons() {
             {filteredSermons.map((s, i) => {
               const isThisTrackPlaying = currentTrack?.id === s.id && isPlaying;
               const isThisTrackActive = currentTrack?.id === s.id;
+              const sermonDownloadUrl = getSermonDownloadUrl(s);
 
               return (
                 <motion.div
@@ -477,13 +495,18 @@ export function Sermons() {
                         </span>
                       </div>
 
-                      {s.audio_file_url && (
-                        <div className="absolute top-4 right-4 z-20">
+                      <div className="absolute top-4 right-4 z-20 flex items-center gap-1.5">
+                        {sermonDownloadUrl && (
+                          <span className="caption-mono !text-[7px] px-2.5 py-0.5 bg-blue-500/20 text-blue-300 dark:bg-neon-green/20 dark:text-neon-green border border-blue-500/30 dark:border-neon-green/30 rounded-full font-bold flex items-center gap-1">
+                            <Download size={8} /> DOWNLOADABLE
+                          </span>
+                        )}
+                        {s.audio_file_url && (
                           <span className="caption-mono !text-[7px] px-2.5 py-0.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full font-bold flex items-center gap-1">
                             <FileAudio size={9} /> AUDIO READY
                           </span>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
                     
                     <div className="p-6 sm:p-8">
@@ -517,6 +540,20 @@ export function Sermons() {
                       </div>
                       
                       <div className="flex items-center gap-1.5">
+                        {sermonDownloadUrl && (
+                          <a
+                            href={sermonDownloadUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="liquid-glass-button px-2.5 py-1.5 rounded-full nav-label !text-[8px] text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-neon-green cursor-pointer flex items-center gap-1 border border-blue-500/20 dark:border-neon-green/20"
+                            title="Download School of Wealth (MP3 via GoFile)"
+                          >
+                            <Download size={10} className="text-blue-600 dark:text-neon-green" />
+                            <span>DOWNLOAD</span>
+                          </a>
+                        )}
+
                         <button 
                           onClick={(e) => {
                             e.stopPropagation();

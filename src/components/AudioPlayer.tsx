@@ -15,9 +15,11 @@ import {
   Check,
   Minimize2,
   Maximize2,
-  Headphones
+  Headphones,
+  Download
 } from 'lucide-react';
 import { useAudio } from '../context/AudioContext';
+import { getSermonDownloadUrl } from '../lib/sermons';
 
 export function AudioPlayer() {
   const {
@@ -69,6 +71,7 @@ export function AudioPlayer() {
   };
 
   const speedOptions = [0.75, 1, 1.25, 1.5, 1.75, 2];
+  const downloadUrl = getSermonDownloadUrl(currentTrack);
 
   return (
     <>
@@ -207,6 +210,21 @@ export function AudioPlayer() {
                   >
                     {isCopied ? <Check size={14} className="text-emerald-500" /> : <Share2 size={14} />}
                   </button>
+
+                  {/* Download button - Available exclusively for School of Wealth */}
+                  {downloadUrl && (
+                    <a
+                      href={downloadUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-2.5 py-1.5 rounded-full liquid-glass-button text-[10px] sm:text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-neon-green cursor-pointer flex items-center gap-1.5 border border-blue-500/20 dark:border-neon-green/20"
+                      title="Download School of Wealth (MP3 via GoFile)"
+                      aria-label="Download sermon audio"
+                    >
+                      <Download size={13} className="text-blue-600 dark:text-neon-green" />
+                      <span className="hidden sm:inline">Download</span>
+                    </a>
+                  )}
 
                   {/* Play in Background / Minimize Player */}
                   <button

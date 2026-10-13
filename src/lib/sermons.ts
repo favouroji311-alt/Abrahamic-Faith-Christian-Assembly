@@ -8,9 +8,13 @@ export interface Sermon {
   tag: string;
   description: string;
   audio_file_url?: string;
+  download_url?: string;
   duration?: string;
   created_at?: string;
 }
+
+// Dedicated download link for School of Wealth only
+export const SCHOOL_OF_WEALTH_DOWNLOAD_URL = 'https://gofile.io/d/O29gsMK1';
 
 // Storage URL provided for School of Wealth Vol 1 Part 11
 export const SCHOOL_OF_WEALTH_AUDIO_URL = 
@@ -19,6 +23,36 @@ export const SCHOOL_OF_WEALTH_AUDIO_URL =
 // Storage URL provided for Ministries of the Holy Spirit
 export const MINISTRIES_OF_HS_AUDIO_URL =
   'https://lduxhzivaczcwxephfwx.supabase.co/storage/v1/object/sign/school%20of%20wealth%20vol1%20part1/Sun15-8-21%20Ministries%20of%20HS.mp3?token=eyJraWQiOiI5NTZiODZjMS05ZTA3LTQ5ZDktYTUyYS1iNjE5MGVjYTg0MWYiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJzY2hvb2wgb2Ygd2VhbHRoIHZvbDEgcGFydDEvU3VuMTUtOC0yMSBNaW5pc3RyaWVzIG9mIEhTLm1wMyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3OTA0NTk2MjksImV4cCI6MjEwNTgxOTYyOX0._o3MZ-YxaExbHce3R2XXlwonRInJeBwFwPf_2WwS_Qo4lqaOjs_riNwusKbDTCXBXgBlxPCUuJV3RTloFZATmQ';
+
+/**
+ * Checks whether a sermon is the School of Wealth sermon.
+ */
+export function isSchoolOfWealthSermon(sermon?: Partial<Sermon> | null): boolean {
+  if (!sermon) return false;
+  const title = (sermon.title || '').toLowerCase();
+  const url = (sermon.audio_file_url || '').toLowerCase();
+  const id = sermon.id || '';
+  return (
+    id === '45c2caf4-ec0c-47c4-879b-30e02788af62' ||
+    title.includes('school of wealth') ||
+    url.includes('school%20of%20wealth') ||
+    Boolean(sermon.download_url)
+  );
+}
+
+/**
+ * Resolves the download URL for a sermon.
+ * Per requirements, only the School of Wealth sermon has a download link available.
+ * Returns null for all other sermons.
+ */
+export function getSermonDownloadUrl(sermon?: Partial<Sermon> | null): string | null {
+  if (!sermon) return null;
+  if (sermon.download_url) return sermon.download_url;
+  if (isSchoolOfWealthSermon(sermon)) {
+    return SCHOOL_OF_WEALTH_DOWNLOAD_URL;
+  }
+  return null;
+}
 
 /**
  * Resolves any Supabase Dashboard storage preview URL or raw storage URL
@@ -98,6 +132,7 @@ export const INITIAL_SERMONS: Sermon[] = [
     tag: 'Wealth & Finances',
     description: 'School of Wealth Volume 1 Part 1 - Biblical principles for financial dominion, supernatural provision, and wealth creation for Kingdom impact.',
     audio_file_url: SCHOOL_OF_WEALTH_AUDIO_URL,
+    download_url: SCHOOL_OF_WEALTH_DOWNLOAD_URL,
     duration: '45 mins',
   }
 ];
@@ -112,7 +147,11 @@ export async function fetchSermons(): Promise<{ sermons: Sermon[] }> {
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data?.sermons) && data.sermons.length > 0) {
-        return { sermons: data.sermons };
+        const enriched = data.sermons.map((s: Sermon) => ({
+          ...s,
+          download_url: isSchoolOfWealthSermon(s) ? (s.download_url || SCHOOL_OF_WEALTH_DOWNLOAD_URL) : undefined
+        }));
+        return { sermons: enriched };
       }
     }
   } catch (apiErr) {
@@ -134,17 +173,23 @@ export async function fetchSermons(): Promise<{ sermons: Sermon[] }> {
             const url = row.audio_file_url || row.audio_url || row.audio || row.file_url || row.url || '';
             return !url.includes('soundhelix.com');
           })
-          .map((row: any) => ({
-          id: String(row.id || row.sermon_id || Math.random().toString(36).substring(7)),
-          title: row.title || row.sermon_title || 'Untitled Sermon',
-          speaker: row.speaker || row.preacher || row.pastor || 'Pastor Benwuk',
-          date: row.date || row.sermon_date || new Date(row.created_at || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-          tag: row.tag || row.topic || row.series || 'General',
-          description: row.description || row.desc || row.summary || '',
-          audio_file_url: row.audio_file_url || row.audio_url || row.audio || row.file_url || row.url || '',
-          duration: row.duration || 'Audio',
-          created_at: row.created_at
-        }));
+          .map((row: any) => {
+            const s: Sermon = {
+              id: String(row.id || row.sermon_id || Math.random().toString(36).substring(7)),
+              title: row.title || row.sermon_title || 'Untitled Sermon',
+              speaker: row.speaker || row.preacher || row.pastor || 'Pastor Benwuk',
+              date: row.date || row.sermon_date || new Date(row.created_at || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+              tag: row.tag || row.topic || row.series || 'General',
+              description: row.description || row.desc || row.summary || '',
+              audio_file_url: row.audio_file_url || row.audio_url || row.audio || row.file_url || row.url || '',
+              duration: row.duration || 'Audio',
+              created_at: row.created_at
+            };
+            if (isSchoolOfWealthSermon(s)) {
+              s.download_url = SCHOOL_OF_WEALTH_DOWNLOAD_URL;
+            }
+            return s;
+          });
 
         const hasSchoolOfWealth = mapped.some(
           s => s.title.toLowerCase().includes('school of wealth') || 
